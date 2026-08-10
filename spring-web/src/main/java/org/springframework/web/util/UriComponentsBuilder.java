@@ -66,9 +66,9 @@ public class UriComponentsBuilder implements Cloneable {
 
 	private static final String HTTP_PATTERN = "(?i)(http|https):";
 
-	private static final String USERINFO_PATTERN = "([^@/?#]*)";
+	private static final String USERINFO_PATTERN = "([^/?#]*)";
 
-	private static final String HOST_IPV4_PATTERN = "[^\\[/?#:]*";
+	private static final String HOST_IPV4_PATTERN = "[^/?#:]*";
 
 	private static final String HOST_IPV6_PATTERN = "\\[[\\p{XDigit}\\:\\.]*[%\\p{Alnum}]*\\]";
 
@@ -220,6 +220,7 @@ public class UriComponentsBuilder implements Cloneable {
 				builder.schemeSpecificPart(ssp);
 			}
 			else {
+				checkSchemeAndHost(uri, scheme, host);
 				builder.userInfo(userInfo);
 				builder.host(host);
 				if (StringUtils.hasLength(port)) {
@@ -261,9 +262,7 @@ public class UriComponentsBuilder implements Cloneable {
 			builder.scheme(scheme != null ? scheme.toLowerCase() : null);
 			builder.userInfo(matcher.group(4));
 			String host = matcher.group(5);
-			if (StringUtils.hasLength(scheme) && !StringUtils.hasLength(host)) {
-				throw new IllegalArgumentException("[" + httpUrl + "] is not a valid HTTP URL");
-			}
+			checkSchemeAndHost(httpUrl, scheme, host);
 			builder.host(host);
 			String port = matcher.group(7);
 			if (StringUtils.hasLength(port)) {
@@ -275,6 +274,15 @@ public class UriComponentsBuilder implements Cloneable {
 		}
 		else {
 			throw new IllegalArgumentException("[" + httpUrl + "] is not a valid HTTP URL");
+		}
+	}
+
+	private static void checkSchemeAndHost(String uri, String scheme, String host) {
+		if (StringUtils.hasLength(scheme) && scheme.startsWith("http") && !StringUtils.hasLength(host)) {
+			throw new IllegalArgumentException("[" + uri + "] is not a valid HTTP URL");
+		}
+		if (StringUtils.hasLength(host) && host.startsWith("[") && !host.endsWith("]")) {
+			throw new IllegalArgumentException("Invalid IPV6 host in [" + uri + "]");
 		}
 	}
 
@@ -315,6 +323,7 @@ public class UriComponentsBuilder implements Cloneable {
 			if (StringUtils.hasLength(port)) {
 				builder.port(port);
 			}
+			checkSchemeAndHost(origin, scheme, host);
 			return builder;
 		}
 		else {
