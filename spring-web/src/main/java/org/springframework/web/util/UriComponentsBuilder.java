@@ -70,13 +70,13 @@ public class UriComponentsBuilder implements UriBuilder, Cloneable {
 
 	private static final Pattern QUERY_PARAM_PATTERN = Pattern.compile("([^&=]+)(=?)([^&]+)?");
 
-	private static final String SCHEME_PATTERN = "([^:/?#]+):";
+	private static final String SCHEME_PATTERN = "([^:/?#\\\\]+):";
 
 	private static final String HTTP_PATTERN = "(?i)(http|https):";
 
-	private static final String USERINFO_PATTERN = "([^/?#]*)";
+	private static final String USERINFO_PATTERN = "([^/?#\\\\]*)";
 
-	private static final String HOST_IPV4_PATTERN = "[^/?#:]*";
+	private static final String HOST_IPV4_PATTERN = "[^/?#:\\\\]*";
 
 	private static final String HOST_IPV6_PATTERN = "\\[[\\p{XDigit}:.]*[%\\p{Alnum}]*]";
 
