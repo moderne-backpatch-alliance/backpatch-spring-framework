@@ -697,7 +697,7 @@ public class AntPathMatcher implements PathMatcher {
 		 * @return {@code true} if the string matches against the pattern, or {@code false} otherwise.
 		 */
 		public boolean matchStrings(String str, @Nullable Map<String, String> uriTemplateVariables) {
-			Matcher matcher = this.pattern.matcher(str);
+			Matcher matcher = this.pattern.matcher(new MaxAttemptsCharSequence(str));
 			if (matcher.matches()) {
 				if (uriTemplateVariables != null) {
 					// SPR-8455
@@ -717,6 +717,63 @@ public class AntPathMatcher implements PathMatcher {
 			}
 			else {
 				return false;
+			}
+		}
+
+
+		private static class MaxAttemptsCharSequence implements CharSequence {
+
+			private static final int MAX_ATTEMPTS = 1_000_000;
+
+			private final String text;
+
+			private final Counter counter;
+
+
+			MaxAttemptsCharSequence(String text) {
+				this(text, new Counter());
+			}
+
+			private MaxAttemptsCharSequence(String text, Counter counter) {
+				this.text = text;
+				this.counter = counter;
+			}
+
+
+			@Override
+			public int length() {
+				return this.text.length();
+			}
+
+			@Override
+			public char charAt(int index) {
+				if (this.counter.value++ >= MAX_ATTEMPTS) {
+					throw new IllegalStateException(
+							"Too many character access attempts encountered during pattern matching");
+				}
+				return this.text.charAt(index);
+			}
+
+			// NOT @Override: CharSequence.isEmpty() is Java 15+, and this baseline compiles
+			// at Java 8. The method is kept so a Java 15+ runtime still dispatches here rather
+			// than to the default, which is what upstream wrote.
+			public boolean isEmpty() {
+				return this.text.isEmpty();
+			}
+
+			@Override
+			public CharSequence subSequence(int start, int end) {
+				return new MaxAttemptsCharSequence(this.text.substring(start, end), this.counter);
+			}
+
+			@Override
+			public String toString() {
+				return this.text;
+			}
+
+
+			private static class Counter {
+				private int value;
 			}
 		}
 	}
