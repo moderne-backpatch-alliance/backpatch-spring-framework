@@ -97,6 +97,58 @@ public class PathResourceLookupFunctionPathTraversalTests {
 		assertRejected("/resources/%252e%252e%252fsibling-secret.txt");
 	}
 
+	// The payloads MEASURED to escape at this baseline. They differ from the
+	// set above in ONE respect that turns out to decide everything: the
+	// location is built WITHOUT a trailing slash. FileSystemResource.
+	// createRelative then resolves through StringUtils.applyRelativePath,
+	// which drops the last segment and makes the PARENT the effective root.
+	// With a trailing slash every payload above is already refused by the
+	// UNPATCHED baseline -- measured on Central's spring-webmvc-5.3.39.jar --
+	// so rejectsParentDirectoryEscape and rejectsEncodedTraversalSequences
+	// pass with or without the fix and cannot witness a regression.
+	private static final java.util.List<String> ESCAPING_PAYLOADS = java.util.Arrays.asList(
+			"/resources/location/../sibling-secret.txt",
+			"/resources/location/..%2fsibling-secret.txt",
+			"/resources/location/..//sibling-secret.txt",
+			"/resources/location/.././sibling-secret.txt",
+			"/resources/location/%2e%2e/sibling-secret.txt",
+			"/resources/location/%2e%2e%2fsibling-secret.txt",
+			"/resources/location/%2E%2E/sibling-secret.txt",
+			"/resources/location/.%2e/sibling-secret.txt",
+			"/resources/location/%2e./sibling-secret.txt");
+
+	@Test  // CVE-2024-38819
+	public void rejectsEscapeFromLocationWithoutTrailingSlash() {
+		PathResourceLookupFunction fn = new PathResourceLookupFunction(
+				"/resources/**", new FileSystemResource(this.locationDir.toString()));
+
+		for (String payload : ESCAPING_PAYLOADS) {
+			MockServerHttpRequest mockRequest =
+					MockServerHttpRequest.get("https://localhost" + payload).build();
+			ServerRequest request = new DefaultServerRequest(
+					MockServerWebExchange.from(mockRequest), Collections.emptyList());
+			StepVerifier.create(fn.apply(request))
+					.as("traversal payload must not resolve a resource: " + payload)
+					.expectComplete()
+					.verify();
+		}
+	}
+
+	@Test  // CVE-2024-38819 -- the negative control
+	public void stillServesLegitimateResourceFromLocationWithoutTrailingSlash() {
+		PathResourceLookupFunction fn = new PathResourceLookupFunction(
+				"/resources/**", new FileSystemResource(this.locationDir.toString()));
+		MockServerHttpRequest mockRequest =
+				MockServerHttpRequest.get("https://localhost/resources/location/legit.txt").build();
+		ServerRequest request = new DefaultServerRequest(
+				MockServerWebExchange.from(mockRequest), Collections.emptyList());
+
+		StepVerifier.create(fn.apply(request))
+				.expectNextCount(1)
+				.expectComplete()
+				.verify();
+	}
+
 	private void assertRejected(String requestPath) {
 		// StepVerifier.as(String) only takes a label; on failure the label is
 		// what surfaces, so include the offending payload inline.
