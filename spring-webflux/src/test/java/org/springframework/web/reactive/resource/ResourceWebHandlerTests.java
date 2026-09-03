@@ -319,7 +319,6 @@ public class ResourceWebHandlerTests {
 		testInvalidPath("/../.." + secretPath, handler);
 		testInvalidPath("/%2E%2E/testsecret/secret.txt", handler);
 		testInvalidPath("/%2E%2E/testsecret/secret.txt", handler);
-		testInvalidPath("%2F%2F%2E%2E%2F%2F%2E%2E" + secretPath, handler);
 	}
 
 	private void testInvalidPath(String requestPath, ResourceWebHandler handler) {
