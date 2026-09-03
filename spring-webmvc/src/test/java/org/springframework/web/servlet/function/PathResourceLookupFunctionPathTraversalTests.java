@@ -32,6 +32,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.web.servlet.handler.PathPatternsTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 /**
  * Regression tests for CVE-2024-38816: path traversal in WebMvc.fn
@@ -103,6 +104,52 @@ class PathResourceLookupFunctionPathTraversalTests {
 		// Double-encoded variant — caught either at processPath validation or
 		// by isInvalidEncodedInputPath's decode-then-revalidate pass.
 		assertRejected("/resources/%252e%252e%252fsibling-secret.txt");
+	}
+
+	// The payloads MEASURED to escape at this baseline. They differ from the
+	// set above in ONE respect that turns out to decide everything: the
+	// location is built WITHOUT a trailing slash. FileSystemResource.
+	// createRelative then resolves through StringUtils.applyRelativePath,
+	// which drops the last segment and makes the PARENT the effective root.
+	// With a trailing slash every payload above is already refused by the
+	// UNPATCHED baseline -- measured on Central's spring-webmvc-5.3.39.jar --
+	// so rejectsParentDirectoryEscape and rejectsEncodedTraversalSequences
+	// pass with or without the fix and cannot witness a regression.
+	private static final java.util.List<String> ESCAPING_PAYLOADS = java.util.Arrays.asList(
+			"/resources/location/../sibling-secret.txt",
+			"/resources/location/..%2fsibling-secret.txt",
+			"/resources/location/..//sibling-secret.txt",
+			"/resources/location/.././sibling-secret.txt",
+			"/resources/location/%2e%2e/sibling-secret.txt",
+			"/resources/location/%2e%2e%2fsibling-secret.txt",
+			"/resources/location/%2E%2E/sibling-secret.txt",
+			"/resources/location/.%2e/sibling-secret.txt",
+			"/resources/location/%2e./sibling-secret.txt");
+
+	@Test  // CVE-2024-38819
+	void rejectsEscapeFromLocationWithoutTrailingSlash() {
+		PathResourceLookupFunction fn = new PathResourceLookupFunction(
+				"/resources/**", new FileSystemResource(this.locationDir.toString()));
+
+		// assertAll so one payload resolving does not hide the rest
+		assertAll(ESCAPING_PAYLOADS.stream().map(payload -> () ->
+				assertThat(fn.apply(request(payload)))
+						.as("payload %s must not resolve a resource", payload)
+						.isNotPresent()));
+	}
+
+	@Test  // CVE-2024-38819 -- the negative control
+	void stillServesLegitimateResourceFromLocationWithoutTrailingSlash() {
+		PathResourceLookupFunction fn = new PathResourceLookupFunction(
+				"/resources/**", new FileSystemResource(this.locationDir.toString()));
+
+		assertThat(fn.apply(request("/resources/location/legit.txt"))).isPresent();
+	}
+
+	private ServerRequest request(String requestUri) {
+		return new DefaultServerRequest(
+				PathPatternsTestUtils.initRequest("GET", requestUri, true),
+				Collections.emptyList());
 	}
 
 	private void assertRejected(String requestPath) {
