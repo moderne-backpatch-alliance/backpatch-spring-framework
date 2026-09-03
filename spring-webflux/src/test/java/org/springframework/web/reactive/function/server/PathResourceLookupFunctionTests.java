@@ -18,14 +18,20 @@ package org.springframework.web.reactive.function.server;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
+import java.util.List;
 import java.util.function.Function;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.web.testfixture.http.server.reactive.MockServerHttpRequest;
 import org.springframework.web.testfixture.server.MockServerWebExchange;
@@ -93,6 +99,70 @@ public class PathResourceLookupFunctionTests {
 		StepVerifier.create(result)
 				.expectComplete()
 				.verify();
+	}
+
+	// The payloads MEASURED to read a file outside the location at this baseline.
+	// The list is the servlet one: three of these escape through the reactive
+	// lookup and the rest do not, and asserting all nine keeps the two artifacts
+	// on the same evidence rather than on whichever subset happened to bite.
+	// The location is built WITHOUT a trailing slash -- with one, every payload
+	// is already refused at 6.0.23 and the test would prove nothing.
+	private static final List<String> TRAVERSAL_PAYLOADS = List.of(
+			"/resources/public/../secret.txt",
+			"/resources/public/..%2fsecret.txt",
+			"/resources/public/..//secret.txt",
+			"/resources/public/.././secret.txt",
+			"/resources/public/%2e%2e/secret.txt",
+			"/resources/public/%2e%2e%2fsecret.txt",
+			"/resources/public/%2E%2E/secret.txt",
+			"/resources/public/.%2e/secret.txt",
+			"/resources/public/%2e./secret.txt");
+
+	@Test  // CVE-2024-38816, CVE-2024-38819
+	public void doesNotServeResourceOutsideFileSystemLocation(@TempDir Path root) throws Exception {
+		PathResourceLookupFunction function = new PathResourceLookupFunction(
+				"/resources/**", new FileSystemResource(layout(root).toString()));
+
+		for (String payload : TRAVERSAL_PAYLOADS) {
+			MockServerHttpRequest mockRequest = MockServerHttpRequest.get("https://localhost" + payload).build();
+			ServerRequest request = new DefaultServerRequest(
+					MockServerWebExchange.from(mockRequest), Collections.emptyList());
+			StepVerifier.create(function.apply(request))
+					.as("payload " + payload + " must not resolve a resource")
+					.expectComplete()
+					.verify();
+		}
+	}
+
+	@Test  // CVE-2024-38816, CVE-2024-38819 -- the negative control
+	public void servesResourceInsideFileSystemLocation(@TempDir Path root) throws Exception {
+		Path served = layout(root);
+		PathResourceLookupFunction function = new PathResourceLookupFunction(
+				"/resources/**", new FileSystemResource(served + "/"));
+		MockServerHttpRequest mockRequest = MockServerHttpRequest.get("https://localhost/resources/index.txt").build();
+		ServerRequest request = new DefaultServerRequest(
+				MockServerWebExchange.from(mockRequest), Collections.emptyList());
+
+		File expected = served.resolve("index.txt").toFile();
+		StepVerifier.create(function.apply(request))
+				.expectNextMatches(resource -> {
+					try {
+						return expected.equals(resource.getFile());
+					}
+					catch (IOException ex) {
+						return false;
+					}
+				})
+				.expectComplete()
+				.verify();
+	}
+
+	/** A served directory holding one legitimate file, beside a secret the payloads reach for. */
+	private static Path layout(Path root) throws Exception {
+		Files.write(root.resolve("secret.txt"), "secret".getBytes(StandardCharsets.UTF_8));
+		Path served = Files.createDirectory(root.resolve("public"));
+		Files.write(served.resolve("index.txt"), "public".getBytes(StandardCharsets.UTF_8));
+		return served;
 	}
 
 	@Test
