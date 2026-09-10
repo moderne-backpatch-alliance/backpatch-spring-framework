@@ -121,12 +121,13 @@ public class OpMultiply extends Operator {
 		if (leftOperand instanceof String && rightOperand instanceof Integer) {
 			String text = (String) leftOperand;
 			int count = (Integer) rightOperand;
-			int requestedSize = text.length() * count;
-			checkRepeatedTextSize(requestedSize);
+			checkRepeatedTextSize(text, count);
 			state.trackOperation();
-			StringBuilder result = new StringBuilder(requestedSize);
-			for (int i = 0; i < count; i++) {
-				result.append(text);
+			StringBuilder result = new StringBuilder(text.length() * count);
+			if (!text.isEmpty()) {
+				for (int i = 0; i < count; i++) {
+					result.append(text);
+				}
 			}
 			return new TypedValue(result.toString());
 		}
@@ -134,8 +135,13 @@ public class OpMultiply extends Operator {
 		return state.operate(Operation.MULTIPLY, leftOperand, rightOperand);
 	}
 
-	private void checkRepeatedTextSize(int requestedSize) {
-		if (requestedSize > MAX_REPEATED_TEXT_SIZE) {
+	private void checkRepeatedTextSize(String text, int count) {
+		// CVE-2026-41849: compute the requested size in long arithmetic so a
+		// text.length() * count product that overflows int cannot wrap to a
+		// small value and slip past the limit. A negative result (from a
+		// negative count or an overflow) is rejected the same way.
+		long requestedSize = (long) text.length() * (long) count;
+		if (requestedSize < 0 || requestedSize > MAX_REPEATED_TEXT_SIZE) {
 			throw new SpelEvaluationException(getStartPosition(),
 					SpelMessage.MAX_REPEATED_TEXT_SIZE_EXCEEDED, MAX_REPEATED_TEXT_SIZE);
 		}
