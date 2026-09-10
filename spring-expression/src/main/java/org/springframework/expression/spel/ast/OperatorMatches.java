@@ -97,6 +97,7 @@ public class OperatorMatches extends Operator {
 					SpelMessage.INVALID_SECOND_OPERAND_FOR_MATCHES_OPERATOR, right);
 		}
 		String regex = (String) right;
+		state.trackOperation();
 
 		try {
 			Pattern pattern = this.patternCache.get(regex);

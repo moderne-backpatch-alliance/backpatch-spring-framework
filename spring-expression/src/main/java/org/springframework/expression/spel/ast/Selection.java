@@ -98,6 +98,7 @@ public class Selection extends SpelNodeImpl {
 					TypedValue kvPair = new TypedValue(entry);
 					state.pushActiveContextObject(kvPair);
 					state.enterScope();
+					state.trackOperation();
 					Object val = selectionCriteria.getValueInternal(state).getValue();
 					if (val instanceof Boolean) {
 						if ((Boolean) val) {
@@ -144,6 +145,7 @@ public class Selection extends SpelNodeImpl {
 				try {
 					state.pushActiveContextObject(new TypedValue(element));
 					state.enterScope("index", index);
+					state.trackOperation();
 					Object val = selectionCriteria.getValueInternal(state).getValue();
 					if (val instanceof Boolean) {
 						if ((Boolean) val) {
