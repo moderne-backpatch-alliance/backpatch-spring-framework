@@ -77,6 +77,7 @@ public class Projection extends SpelNodeImpl {
 				try {
 					state.pushActiveContextObject(new TypedValue(entry));
 					state.enterScope();
+					state.trackOperation();
 					result.add(this.children[0].getValueInternal(state).getValue());
 				}
 				finally {
@@ -97,6 +98,7 @@ public class Projection extends SpelNodeImpl {
 				try {
 					state.pushActiveContextObject(new TypedValue(element));
 					state.enterScope("index", result.size());
+					state.trackOperation();
 					Object value = this.children[0].getValueInternal(state).getValue();
 					if (value != null && operandIsArray) {
 						arrayElementType = determineCommonType(arrayElementType, value.getClass());
