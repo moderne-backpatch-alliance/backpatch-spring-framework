@@ -20,28 +20,34 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Named;
+import org.junit.jupiter.api.Test;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.handler.PathPatternsParameterizedTest;
 import org.springframework.web.servlet.handler.PathPatternsTestUtils;
 import org.springframework.web.testfixture.servlet.MockHttpServletRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Rick Evans
  * @author Juergen Hoeller
+ * @author Sebastien Deleuze
  */
 public class DefaultRequestToViewNameTranslatorTests {
 
 	private static final String VIEW_NAME = "apple";
 	private static final String EXTENSION = ".html";
+	private static final String CONTEXT_PATH = "/sundays";
 
 	private final DefaultRequestToViewNameTranslator translator = new DefaultRequestToViewNameTranslator();
 
 
 	@SuppressWarnings("unused")
 	private static Stream<Named<Function<String, MockHttpServletRequest>>> pathPatternsArguments() {
-		return PathPatternsTestUtils.requestArguments("/sundays");
+		return PathPatternsTestUtils.requestArguments(CONTEXT_PATH);
 	}
 
 
@@ -119,6 +125,36 @@ public class DefaultRequestToViewNameTranslatorTests {
 		MockHttpServletRequest request = requestFactory.apply(VIEW_NAME);
 		this.translator.setSuffix(null);
 		assertViewName(request, VIEW_NAME);
+	}
+
+	@Test
+	void getViewNameWithRedirectPrefixFails() {
+		assertPrefixRejected(UrlBasedViewResolver.REDIRECT_URL_PREFIX);
+	}
+
+	@Test
+	void getViewNameWithForwardPrefixFails() {
+		assertPrefixRejected(UrlBasedViewResolver.FORWARD_URL_PREFIX);
+	}
+
+	@Test
+	void getViewNameWithOrdinaryPathIsUnaffected() {
+		for (boolean parsedPatterns : new boolean[] {true, false}) {
+			MockHttpServletRequest request = PathPatternsTestUtils.initRequest(
+					"GET", CONTEXT_PATH, VIEW_NAME, parsedPatterns);
+			assertViewName(request, VIEW_NAME);
+		}
+	}
+
+	private void assertPrefixRejected(String prefix) {
+		for (boolean parsedPatterns : new boolean[] {true, false}) {
+			MockHttpServletRequest request = PathPatternsTestUtils.initRequest(
+					"GET", CONTEXT_PATH, prefix + VIEW_NAME, parsedPatterns);
+			assertThatExceptionOfType(ResponseStatusException.class)
+					.as("resolution via %s", parsedPatterns ? "ServletRequestPathUtils" : "UrlPathHelper")
+					.isThrownBy(() -> this.translator.getViewName(request))
+					.satisfies(ex -> assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST));
+		}
 	}
 
 
