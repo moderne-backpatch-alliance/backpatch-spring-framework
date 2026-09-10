@@ -7,12 +7,7 @@ dependencies {
 }
 
 repositories {
-	maven {
-		url "https://repo.spring.io/release"
-		mavenContent {
-			includeGroup "io.spring.asciidoctor"
-		}
-	}
+	mavenCentral()
 }
 
 /**
