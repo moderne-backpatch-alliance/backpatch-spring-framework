@@ -25,7 +25,6 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -98,29 +97,14 @@ class HttpInvokerTests {
 
 		pfb.afterPropertiesSet();
 		ITestBean proxy = (ITestBean) pfb.getObject();
-		assertThat(proxy.getName()).isEqualTo("myname");
-		assertThat(proxy.getAge()).isEqualTo(99);
-		proxy.setAge(50);
-		assertThat(proxy.getAge()).isEqualTo(50);
-		proxy.setStringArray(new String[] {"str1", "str2"});
-		assertThat(Arrays.equals(new String[] {"str1", "str2"}, proxy.getStringArray())).isTrue();
-		proxy.setSomeIntegerArray(new Integer[] {1, 2, 3});
-		assertThat(Arrays.equals(new Integer[] {1, 2, 3}, proxy.getSomeIntegerArray())).isTrue();
-		proxy.setNestedIntegerArray(new Integer[][] {{1, 2, 3}, {4, 5, 6}});
-		Integer[][] integerArray = proxy.getNestedIntegerArray();
-		assertThat(Arrays.equals(new Integer[] {1, 2, 3}, integerArray[0])).isTrue();
-		assertThat(Arrays.equals(new Integer[] {4, 5, 6}, integerArray[1])).isTrue();
-		proxy.setSomeIntArray(new int[] {1, 2, 3});
-		assertThat(Arrays.equals(new int[] {1, 2, 3}, proxy.getSomeIntArray())).isTrue();
-		proxy.setNestedIntArray(new int[][] {{1, 2, 3}, {4, 5, 6}});
-		int[][] intArray = proxy.getNestedIntArray();
-		assertThat(Arrays.equals(new int[] {1, 2, 3}, intArray[0])).isTrue();
-		assertThat(Arrays.equals(new int[] {4, 5, 6}, intArray[1])).isTrue();
-
-		assertThatIllegalStateException().isThrownBy(() ->
-				proxy.exceptional(new IllegalStateException()));
-		assertThatExceptionOfType(IllegalAccessException.class).isThrownBy(() ->
-				proxy.exceptional(new IllegalAccessException()));
+		// CVE-2016-1000027: the exporter no longer deserializes the request body, so the
+		// first remote call is refused. Everything above this line still runs unchanged:
+		// the invocation is built, serialized and, where configured, compressed exactly as
+		// before, which is what keeps the marshalling half of this test meaningful.
+		assertThatExceptionOfType(RemoteAccessException.class)
+				.isThrownBy(proxy::getName)
+				.withCauseInstanceOf(IOException.class)
+				.withStackTraceContaining("CVE-2016-1000027");
 	}
 
 	@Test
@@ -209,15 +193,14 @@ class HttpInvokerTests {
 
 		pfb.afterPropertiesSet();
 		ITestBean proxy = (ITestBean) pfb.getObject();
-		assertThat(proxy.getName()).isEqualTo("myname");
-		assertThat(proxy.getAge()).isEqualTo(99);
-		proxy.setAge(50);
-		assertThat(proxy.getAge()).isEqualTo(50);
-
-		assertThatIllegalStateException().isThrownBy(() ->
-				proxy.exceptional(new IllegalStateException()));
-		assertThatExceptionOfType(IllegalAccessException.class).isThrownBy(() ->
-				proxy.exceptional(new IllegalAccessException()));
+		// CVE-2016-1000027: the exporter no longer deserializes the request body, so the
+		// first remote call is refused. Everything above this line still runs unchanged:
+		// the invocation is built, serialized and, where configured, compressed exactly as
+		// before, which is what keeps the marshalling half of this test meaningful.
+		assertThatExceptionOfType(RemoteAccessException.class)
+				.isThrownBy(proxy::getName)
+				.withCauseInstanceOf(IOException.class)
+				.withStackTraceContaining("CVE-2016-1000027");
 	}
 
 	@Test
@@ -279,15 +262,14 @@ class HttpInvokerTests {
 
 		pfb.afterPropertiesSet();
 		ITestBean proxy = (ITestBean) pfb.getObject();
-		assertThat(proxy.getName()).isEqualTo("myname");
-		assertThat(proxy.getAge()).isEqualTo(99);
-		proxy.setAge(50);
-		assertThat(proxy.getAge()).isEqualTo(50);
-
-		assertThatIllegalStateException().isThrownBy(() ->
-				proxy.exceptional(new IllegalStateException()));
-		assertThatExceptionOfType(IllegalAccessException.class).isThrownBy(() ->
-				proxy.exceptional(new IllegalAccessException()));
+		// CVE-2016-1000027: the exporter no longer deserializes the request body, so the
+		// first remote call is refused. Everything above this line still runs unchanged:
+		// the invocation is built, serialized and, where configured, compressed exactly as
+		// before, which is what keeps the marshalling half of this test meaningful.
+		assertThatExceptionOfType(RemoteAccessException.class)
+				.isThrownBy(proxy::getName)
+				.withCauseInstanceOf(IOException.class)
+				.withStackTraceContaining("CVE-2016-1000027");
 	}
 
 	@Test
@@ -341,8 +323,14 @@ class HttpInvokerTests {
 
 		pfb.afterPropertiesSet();
 		ITestBean proxy = (ITestBean) pfb.getObject();
-		assertThat(proxy.getName()).isEqualTo("myname");
-		assertThat(proxy.getAge()).isEqualTo(99);
+		// CVE-2016-1000027: the exporter no longer deserializes the request body, so the
+		// first remote call is refused. Everything above this line still runs unchanged:
+		// the invocation is built, serialized and, where configured, compressed exactly as
+		// before, which is what keeps the marshalling half of this test meaningful.
+		assertThatExceptionOfType(RemoteAccessException.class)
+				.isThrownBy(proxy::getName)
+				.withCauseInstanceOf(IOException.class)
+				.withStackTraceContaining("CVE-2016-1000027");
 	}
 
 	@Test
@@ -391,8 +379,14 @@ class HttpInvokerTests {
 
 		pfb.afterPropertiesSet();
 		ITestBean proxy = (ITestBean) pfb.getObject();
-		assertThat(proxy.getName()).isEqualTo("myname");
-		assertThat(proxy.getAge()).isEqualTo(99);
+		// CVE-2016-1000027: the exporter no longer deserializes the request body, so the
+		// first remote call is refused. Everything above this line still runs unchanged:
+		// the invocation is built, serialized and, where configured, compressed exactly as
+		// before, which is what keeps the marshalling half of this test meaningful.
+		assertThatExceptionOfType(RemoteAccessException.class)
+				.isThrownBy(proxy::getName)
+				.withCauseInstanceOf(IOException.class)
+				.withStackTraceContaining("CVE-2016-1000027");
 	}
 
 	@Test
