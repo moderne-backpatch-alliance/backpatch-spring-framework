@@ -16,9 +16,15 @@
 
 package org.springframework.expression.spel;
 
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import org.junit.jupiter.api.Test;
 
 import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
@@ -107,7 +113,7 @@ class SpelEvaluationLimitTests {
 	@Test
 	void projectionWithinOperationBudgetIsUnaffected() {
 		Expression expression = this.parser.parseExpression("{1,2,3,4,5}.![#this + 1]");
-		assertThat(expression.getValue(this.context)).isEqualTo(java.util.Arrays.asList(2, 3, 4, 5, 6));
+		assertThat(expression.getValue(this.context)).isEqualTo(Arrays.asList(2, 3, 4, 5, 6));
 	}
 
 	// CVE-2026-41851: the inline collection constant was built eagerly in the
@@ -130,7 +136,134 @@ class SpelEvaluationLimitTests {
 	@Test
 	void smallInlineListIsUnaffected() {
 		Expression expression = this.parser.parseExpression("{1,2,3}");
-		assertThat(expression.getValue(this.context)).isEqualTo(java.util.Arrays.asList(1, 2, 3));
+		assertThat(expression.getValue(this.context)).isEqualTo(Arrays.asList(1, 2, 3));
+	}
+
+	// CVE-2026-41851: the shared regex pattern cache was an unbounded ConcurrentHashMap
+	// living on the parsed expression, so an application that CACHES a parsed expression and
+	// feeds it attacker-chosen regexes grows the cache without bound -- the advisory's
+	// "unbounded cache growth ... typically requiring millions of evaluations, even when
+	// utilizing a single expression with dynamic inputs". Upstream 6.2.19 replaced it with a
+	// ConcurrentLruCache bounded at OperatorMatches.MAX_PATTERN_CACHE_SIZE (256).
+	//
+	// The size is read reflectively and 256 is spelled out rather than referenced, so the
+	// method still COMPILES against a tree with the production hunk reverted -- where the
+	// field is the old ConcurrentMap and the assertion then fails on 1000 entries. Both the
+	// new constant and the enforcement live in OperatorMatches.java, so a fail_before_keep
+	// entry could not have separated them.
+	@Test
+	void regexPatternCacheIsBounded() throws Exception {
+		Expression expression = this.parser.parseExpression("#s matches #r");
+		this.context.setVariable("s", "abc");
+		for (int i = 0; i < 1000; i++) {
+			this.context.setVariable("r", "a" + i + "bc.*");
+			expression.getValue(this.context, Boolean.class);
+		}
+		assertThat(patternCacheSize(expression)).isLessThanOrEqualTo(256);
+	}
+
+	@Test
+	void matchesOperatorIsUnaffected() {
+		this.context.setVariable("s", "abc");
+		this.context.setVariable("r", "a.c");
+		Expression expression = this.parser.parseExpression("#s matches #r");
+		assertThat(expression.getValue(this.context, Boolean.class)).isTrue();
+	}
+
+	@Test
+	void overlongRegexIsStillRejected() {
+		this.context.setVariable("s", "abc");
+		this.context.setVariable("r", repeat("a", 1001));
+		Expression expression = this.parser.parseExpression("#s matches #r");
+		assertThatExceptionOfType(SpelEvaluationException.class)
+				.isThrownBy(() -> expression.getValue(this.context, Boolean.class))
+				.satisfies(ex -> assertThat(ex.getMessageCode())
+						.isEqualTo(SpelMessage.MAX_REGEX_LENGTH_EXCEEDED));
+	}
+
+	// CVE-2026-41850, the half the operation budget did not reach until this backpatch:
+	// indexing a non-List Collection walks the iterator to the requested position, so a
+	// 22-character expression performs work proportional to the collection rather than to
+	// its own length. Untracked, a 20000-element walk costs one operation; tracked, it costs
+	// 20000 and trips the 10000 default. Fail-before: with the Indexer hunk reverted this
+	// returns 19999 instead of throwing.
+	@Test
+	void collectionIndexingExceedsOperationBudget() {
+		this.context.setVariable("big", sequence(20_000));
+		Expression expression = this.parser.parseExpression("#big[19999]");
+		assertThatExceptionOfType(SpelEvaluationException.class)
+				.isThrownBy(() -> expression.getValue(this.context))
+				.satisfies(ex -> assertThat(ex.getMessageCode())
+						.isEqualTo(SpelMessage.MAX_OPERATIONS_EXCEEDED));
+	}
+
+	@Test
+	void smallCollectionIndexingIsUnaffected() {
+		this.context.setVariable("small", sequence(10));
+		Expression expression = this.parser.parseExpression("#small[7]");
+		assertThat(expression.getValue(this.context)).isEqualTo(7);
+	}
+
+	// CVE-2026-41850, the property-access half. A 6000-element projection costs 6000 tracked
+	// operations on its own, which is inside the 10000 budget; each element additionally reads
+	// a property, and only with the PropertyOrFieldReference hunk does that second 6000 count.
+	// Fail-before: with that hunk reverted the total stays at 6000 and this completes.
+	@Test
+	void propertyAccessExceedsOperationBudget() {
+		StandardEvaluationContext rootContext = new StandardEvaluationContext(new Named("spring"));
+		Expression expression = this.parser.parseExpression("(new int[6000]).![#root.name]");
+		assertThatExceptionOfType(SpelEvaluationException.class)
+				.isThrownBy(() -> expression.getValue(rootContext))
+				.satisfies(ex -> assertThat(ex.getMessageCode())
+						.isEqualTo(SpelMessage.MAX_OPERATIONS_EXCEEDED));
+	}
+
+	@Test
+	void propertyAccessWithinOperationBudgetIsUnaffected() {
+		StandardEvaluationContext rootContext = new StandardEvaluationContext(new Named("spring"));
+		Expression expression = this.parser.parseExpression("#root.name");
+		assertThat(expression.getValue(rootContext)).isEqualTo("spring");
+	}
+
+
+	private static Set<Integer> sequence(int size) {
+		Set<Integer> values = new LinkedHashSet<>();
+		for (int i = 0; i < size; i++) {
+			values.add(i);
+		}
+		return values;
+	}
+
+	private static String repeat(String text, int count) {
+		StringBuilder builder = new StringBuilder(text.length() * count);
+		for (int i = 0; i < count; i++) {
+			builder.append(text);
+		}
+		return builder.toString();
+	}
+
+	private static int patternCacheSize(Expression expression) throws Exception {
+		Field astField = SpelExpression.class.getDeclaredField("ast");
+		astField.setAccessible(true);
+		Object ast = astField.get(expression);
+		Field cacheField = ast.getClass().getDeclaredField("patternCache");
+		cacheField.setAccessible(true);
+		Object cache = cacheField.get(ast);
+		return (int) cache.getClass().getMethod("size").invoke(cache);
+	}
+
+
+	static class Named {
+
+		private final String name;
+
+		Named(String name) {
+			this.name = name;
+		}
+
+		public String getName() {
+			return this.name;
+		}
 	}
 
 }
