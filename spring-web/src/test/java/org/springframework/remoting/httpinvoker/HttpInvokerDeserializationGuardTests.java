@@ -16,11 +16,15 @@
 
 package org.springframework.remoting.httpinvoker;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,6 +37,7 @@ import org.springframework.web.testfixture.servlet.MockHttpServletRequest;
 import org.springframework.web.testfixture.servlet.MockHttpServletResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIOException;
 
 /**
@@ -49,9 +54,15 @@ import static org.assertj.core.api.Assertions.assertThatIOException;
  * ...HttpInvokerDeserializationGuardTests$DeserializationProbe", naming the probe the JVM had
  * already constructed.
  *
- * <p>The CLIENT path ({@code AbstractHttpInvokerRequestExecutor}) is deliberately not covered:
- * it is left enabled, because it requires an attacker to control or spoof a server the
- * application already chose to call, and disabling it would break every HTTP invoker client.
+ * <p>The CLIENT path ({@code AbstractHttpInvokerRequestExecutor}) is covered too, since
+ * upstream's 6.0 removal took the client classes with it. There the untrusted bytes are a
+ * server's response, so the server chooses which types this client instantiates.
+ *
+ * <p>Two of these tests are structural on purpose. Each exporter must DECLARE its own guard
+ * rather than inherit one, because the inherited method ships in a different artifact
+ * (spring-context) and a consumer who replaces only this one resolves that artifact
+ * elsewhere. Asserting behaviour cannot see that boundary: every class here is on one
+ * classpath at test time, so an inherited guard and a declared one are indistinguishable.
  *
  * @author Moderne Backpatch Alliance
  */
@@ -77,6 +88,60 @@ class HttpInvokerDeserializationGuardTests {
 		assertThatIOException()
 				.isThrownBy(() -> exporter.handleRequest(request, response))
 				.withMessageContaining("CVE-2016-1000027");
+		assertThat(DeserializationProbe.deserialized)
+				.as("readObject() must not run on a request body supplied by a remote caller")
+				.isFalse();
+	}
+
+	@Test
+	void serviceExporterDeclaresItsOwnGuard() throws Exception {
+		assertGuardIsDeclaredBy(HttpInvokerServiceExporter.class, new HttpInvokerServiceExporter());
+	}
+
+	@Test
+	void simpleServiceExporterDeclaresItsOwnGuard() throws Exception {
+		assertGuardIsDeclaredBy(SimpleHttpInvokerServiceExporter.class, new SimpleHttpInvokerServiceExporter());
+	}
+
+	@Test
+	void clientRequestExecutorRefusesToDeserializeTheResponse() throws Exception {
+		StubExecutor executor = new StubExecutor();
+		byte[] responseBody = serialize(new DeserializationProbe());
+
+		assertThatIOException()
+				.isThrownBy(() -> executor.readResult(new ByteArrayInputStream(responseBody)))
+				.withMessageContaining("CVE-2016-1000027");
+		assertThat(DeserializationProbe.deserialized)
+				.as("readObject() must not run on a response body supplied by a remote server")
+				.isFalse();
+	}
+
+	/**
+	 * The guard has to be DECLARED by the exporter in this artifact, not inherited from
+	 * {@code RemoteInvocationSerializingExporter} in spring-context. A consumer who replaces
+	 * spring-web alone resolves spring-context from wherever it already came from, and an
+	 * inherited guard is then simply not on the classpath.
+	 */
+	private void assertGuardIsDeclaredBy(Class<?> exporterType, Object exporter) throws Exception {
+		Method guard = null;
+		try {
+			guard = exporterType.getDeclaredMethod("createObjectInputStream", InputStream.class);
+		}
+		catch (NoSuchMethodException ex) {
+			// fall through to the assertion below, which reports the reason
+		}
+		assertThat(guard)
+				.as("%s must declare createObjectInputStream itself, so the sink is dead in this "
+						+ "artifact rather than only in the one it inherits from", exporterType.getSimpleName())
+				.isNotNull();
+
+		guard.setAccessible(true);
+		Method invoked = guard;
+		byte[] requestBody = serialize(new DeserializationProbe());
+		assertThatExceptionOfType(InvocationTargetException.class)
+				.isThrownBy(() -> invoked.invoke(exporter, new ByteArrayInputStream(requestBody)))
+				.withCauseInstanceOf(IOException.class)
+				.withStackTraceContaining("CVE-2016-1000027");
 		assertThat(DeserializationProbe.deserialized)
 				.as("readObject() must not run on a request body supplied by a remote caller")
 				.isFalse();
@@ -113,7 +178,7 @@ class HttpInvokerDeserializationGuardTests {
 		}
 	}
 
-	/** Exposes the protected write path; never performs a request. */
+	/** Exposes the protected read and write paths; never performs a request. */
 	private static class StubExecutor extends AbstractHttpInvokerRequestExecutor {
 
 		@Override
@@ -124,6 +189,10 @@ class HttpInvokerDeserializationGuardTests {
 
 		void writeInvocation(RemoteInvocation invocation, ByteArrayOutputStream baos) throws IOException {
 			writeRemoteInvocation(invocation, baos);
+		}
+
+		RemoteInvocationResult readResult(InputStream is) throws IOException, ClassNotFoundException {
+			return readRemoteInvocationResult(is, null);
 		}
 	}
 
