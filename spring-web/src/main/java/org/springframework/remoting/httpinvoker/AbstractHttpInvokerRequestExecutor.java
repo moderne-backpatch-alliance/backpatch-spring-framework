@@ -256,16 +256,25 @@ public abstract class AbstractHttpInvokerRequestExecutor implements HttpInvokerR
 
 	/**
 	 * Create an ObjectInputStream for the given InputStream and codebase.
-	 * The default implementation creates a CodebaseAwareObjectInputStream.
+	 * <p>As of this backpatch the default implementation deserializes nothing and always
+	 * throws {@link IOException}. The bytes read here are a server's response, so the
+	 * server chooses the types this client instantiates, and any gadget on the client's
+	 * classpath is reachable before the result is ever inspected. That is the client half
+	 * of CVE-2016-1000027.
+	 * <p>Spring resolved this in 6.0 by removing {@code org.springframework.remoting}
+	 * outright, this class included. A drop-in replacement for 5.3.39 cannot remove types
+	 * its consumers compile against, so the type stays and the sink is disabled instead.
+	 * Overriding this method is the only way to reinstate the old behaviour.
 	 * @param is the InputStream to read from
 	 * @param codebaseUrl the codebase URL to load classes from if not found locally
 	 * (can be {@code null})
-	 * @return the new ObjectInputStream instance to use
-	 * @throws IOException if creation of the ObjectInputStream failed
-	 * @see org.springframework.remoting.rmi.CodebaseAwareObjectInputStream
+	 * @return never returns normally
+	 * @throws IOException always
 	 */
 	protected ObjectInputStream createObjectInputStream(InputStream is, @Nullable String codebaseUrl) throws IOException {
-		return new org.springframework.remoting.rmi.CodebaseAwareObjectInputStream(is, getBeanClassLoader(), codebaseUrl);
+		throw new IOException("Java deserialization of remote invocation results is disabled " +
+				"(CVE-2016-1000027). Spring removed HTTP invoker support in 6.0; migrate off " +
+				"it rather than reinstating this path.");
 	}
 
 	/**
