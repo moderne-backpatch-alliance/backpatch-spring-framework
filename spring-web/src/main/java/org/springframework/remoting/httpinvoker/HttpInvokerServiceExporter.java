@@ -134,6 +134,32 @@ public class HttpInvokerServiceExporter extends org.springframework.remoting.rmi
 	}
 
 	/**
+	 * Create an ObjectInputStream for the given InputStream.
+	 * <p>As of this backpatch the default implementation deserializes nothing and always
+	 * throws {@link IOException}. Reading a Java-serialized invocation from a remote caller
+	 * is CVE-2016-1000027: the payload chooses the types to instantiate, so any gadget on
+	 * the classpath is reachable before this class ever inspects the result.
+	 * <p>This restates the guard that
+	 * {@link org.springframework.remoting.rmi.RemoteInvocationSerializingExporter} already
+	 * applies, so that the sink is dead in this artifact rather than only in the one this
+	 * class inherits from. A consumer who replaces this artifact and resolves the other
+	 * from elsewhere still gets the fix.
+	 * <p>Spring resolved this in 6.0 by removing {@code org.springframework.remoting}
+	 * outright. A drop-in replacement for 5.3.39 cannot remove types its consumers compile
+	 * against, so the types stay and the sink is disabled instead. Overriding this method
+	 * is the only way to reinstate the old behaviour.
+	 * @param is the InputStream to read from
+	 * @return never returns normally
+	 * @throws java.io.IOException always
+	 */
+	@Override
+	protected ObjectInputStream createObjectInputStream(InputStream is) throws IOException {
+		throw new IOException("Java deserialization of remote invocations is disabled " +
+				"(CVE-2016-1000027). Spring removed HTTP invoker support in 6.0; migrate off " +
+				"it rather than reinstating this path.");
+	}
+
+	/**
 	 * Write the given RemoteInvocationResult to the given HTTP response.
 	 * @param request current HTTP request
 	 * @param response current HTTP response
