@@ -1,6 +1,6 @@
 schema: osera-patch-evidence/0.1.0
 producer: moderne
-release: 5.3.39.1-backpatch-00007
+release: 5.3.39.1-backpatch-00008
 baseline: v5.3.39+backpatch.baseline
 fixes:
   - cve: CVE-2016-1000027
@@ -40,11 +40,26 @@ fixes:
     upstream: https://nvd.nist.gov/vuln/detail/CVE-2026-41848
     artifacts:
       - org.springframework:spring-core
-    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00007 (backpatch-spring-framework@a0c8ebb..f5b59f7).
+    note: Carried from 5.3.39.1-backpatch-00007; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00007 (backpatch-spring-framework@a0c8ebb..f5b59f7).
+  - cve: CVE-2026-41849
+    upstream: https://nvd.nist.gov/vuln/detail/CVE-2026-41849
+    artifacts:
+      - org.springframework:spring-expression
+    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00008 (backpatch-spring-framework@a533038..ffdf53f).
+  - cve: CVE-2026-41850
+    upstream: https://nvd.nist.gov/vuln/detail/CVE-2026-41850
+    artifacts:
+      - org.springframework:spring-expression
+    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00008 (backpatch-spring-framework@a533038..ffdf53f).
+  - cve: CVE-2026-41851
+    upstream: https://nvd.nist.gov/vuln/detail/CVE-2026-41851
+    artifacts:
+      - org.springframework:spring-expression
+    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00008 (backpatch-spring-framework@a533038..ffdf53f).
 tests:
-  commit: f5b59f712c490471d354ca8cca4c520f350681dc
-  command: ./gradlew --quiet --no-daemon -I init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00007 -Dbackpatch.repository.url=file:///tmp/osera-unused-repo -Dbackpatch.compile.jdk=8 -p spring-core test --rerun-tasks --tests org.springframework.util.AntPathMatcherRedosTests
+  commit: ffdf53f3e7ef3dee3dd301d91057d461859b13f8
+  command: ./gradlew --quiet --no-daemon -I init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00008 -Dbackpatch.repository.url=file:///tmp/osera-unused-repo -Dbackpatch.compile.jdk=8 -p spring-expression test --rerun-tasks --tests org.springframework.expression.spel.SpelEvaluationLimitTests
   runtime: OpenJDK 1.8.0_372 (Zulu), Gradle wrapper of the repository
-  report: spring-core-5.3.39.1-backpatch-00007-tests.zip
+  report: spring-expression-5.3.39.1-backpatch-00008-tests.zip
   result: pass
-  note: the regression tests the fix commits touched, 2 test(s) run, 0 failed, at the tested commit
+  note: the regression tests the fix commits touched, 14 test(s) run, 0 failed, at the tested commit
