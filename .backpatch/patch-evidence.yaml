@@ -1,6 +1,6 @@
 schema: osera-patch-evidence/0.1.0
 producer: moderne
-release: 5.3.39.1-backpatch-00003
+release: 5.3.39.1-backpatch-00004
 baseline: v5.3.39+backpatch.baseline
 fixes:
   - cve: CVE-2016-1000027
@@ -19,11 +19,16 @@ fixes:
     artifacts:
       - org.springframework:spring-webflux;
       - org.springframework:spring-webmvc
-    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00003 (backpatch-spring-framework@9df5e90..0544754).
+    note: Carried from 5.3.39.1-backpatch-00003; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00003 (backpatch-spring-framework@9df5e90..0544754).
+  - cve: CVE-2025-41249
+    upstream: https://nvd.nist.gov/vuln/detail/CVE-2025-41249
+    artifacts:
+      - org.springframework:spring-core
+    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00004 (backpatch-spring-framework@c86ba0d..8a0071a).
 tests:
-  commit: 05447545b857c2caee307afb78ddb18580f88fa3
-  command: ./gradlew --quiet --no-daemon -I init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00003 -Dbackpatch.repository.url=file:///tmp/osera-unused-repo -Dbackpatch.compile.jdk=8 -p spring-webflux test --rerun-tasks --tests org.springframework.web.reactive.function.server.PathResourceLookupFunctionPathTraversalTests --tests org.springframework.web.reactive.resource.ResourceWebHandlerTests && ./gradlew --quiet --no-daemon -I init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00003 -Dbackpatch.repository.url=file:///tmp/osera-unused-repo -Dbackpatch.compile.jdk=8 -p spring-webmvc test --rerun-tasks --tests org.springframework.web.servlet.function.PathResourceLookupFunctionPathTraversalTests --tests org.springframework.web.servlet.resource.ResourceHttpRequestHandlerTests
+  commit: 8a0071aa59ba8776bf4b78171d3951ea11a16a2f
+  command: ./gradlew --quiet --no-daemon -I init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00004 -Dbackpatch.repository.url=file:///tmp/osera-unused-repo -Dbackpatch.compile.jdk=8 -p spring-core test --rerun-tasks --tests org.springframework.core.annotation.MergedAnnotationsTests && ./gradlew --quiet --no-daemon -I init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00004 -Dbackpatch.repository.url=file:///tmp/osera-unused-repo -Dbackpatch.compile.jdk=8 -p spring-web test --rerun-tasks --tests org.springframework.web.method.HandlerMethodTests
   runtime: OpenJDK 1.8.0_372 (Zulu), Gradle wrapper of the repository
-  report: spring-webflux-5.3.39.1-backpatch-00003-tests.zip
+  report: spring-core-5.3.39.1-backpatch-00004-tests.zip
   result: pass
-  note: the regression tests the fix commits touched, 83 test(s) run, 0 failed, at the tested commit
+  note: the regression tests the fix commits touched, 174 test(s) run, 0 failed, at the tested commit
