@@ -1,6 +1,6 @@
 schema: osera-patch-evidence/0.1.0
 producer: moderne
-release: 5.3.39.1-backpatch-00006
+release: 5.3.39.1-backpatch-00007
 baseline: v5.3.39+backpatch.baseline
 fixes:
   - cve: CVE-2016-1000027
@@ -35,11 +35,16 @@ fixes:
     artifacts:
       - org.springframework:spring-webflux;
       - org.springframework:spring-webmvc
-    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00006 (backpatch-spring-framework@ba5eba0..26b3074).
+    note: Carried from 5.3.39.1-backpatch-00006; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00006 (backpatch-spring-framework@ba5eba0..26b3074).
+  - cve: CVE-2026-41848
+    upstream: https://nvd.nist.gov/vuln/detail/CVE-2026-41848
+    artifacts:
+      - org.springframework:spring-core
+    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00007 (backpatch-spring-framework@a0c8ebb..f5b59f7).
 tests:
-  commit: 26b30747258c78b292d91e488a55cd8f4630ea22
-  command: ./gradlew --quiet --no-daemon -I init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00006 -Dbackpatch.repository.url=file:///tmp/osera-unused-repo -Dbackpatch.compile.jdk=8 -p spring-webflux test --rerun-tasks --tests org.springframework.web.reactive.resource.ContentBasedVersionStrategyTests && ./gradlew --quiet --no-daemon -I init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00006 -Dbackpatch.repository.url=file:///tmp/osera-unused-repo -Dbackpatch.compile.jdk=8 -p spring-webmvc test --rerun-tasks --tests org.springframework.web.servlet.resource.ContentBasedVersionStrategyTests --tests org.springframework.web.servlet.resource.VersionedResourceCacheRetentionTests
+  commit: f5b59f712c490471d354ca8cca4c520f350681dc
+  command: ./gradlew --quiet --no-daemon -I init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00007 -Dbackpatch.repository.url=file:///tmp/osera-unused-repo -Dbackpatch.compile.jdk=8 -p spring-core test --rerun-tasks --tests org.springframework.util.AntPathMatcherRedosTests
   runtime: OpenJDK 1.8.0_372 (Zulu), Gradle wrapper of the repository
-  report: spring-webflux-5.3.39.1-backpatch-00006-tests.zip
+  report: spring-core-5.3.39.1-backpatch-00007-tests.zip
   result: pass
-  note: the regression tests the fix commits touched, 12 test(s) run, 0 failed, at the tested commit
+  note: the regression tests the fix commits touched, 2 test(s) run, 0 failed, at the tested commit
