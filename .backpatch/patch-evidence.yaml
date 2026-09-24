@@ -1,6 +1,6 @@
 schema: osera-patch-evidence/0.1.0
 producer: moderne
-release: 5.3.39.1-backpatch-00005
+release: 5.3.39.1-backpatch-00006
 baseline: v5.3.39+backpatch.baseline
 fixes:
   - cve: CVE-2016-1000027
@@ -29,11 +29,17 @@ fixes:
     upstream: https://nvd.nist.gov/vuln/detail/CVE-2026-41838
     artifacts:
       - org.springframework:spring-websocket
-    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00005 (backpatch-spring-framework@64f7330).
+    note: Carried from 5.3.39.1-backpatch-00005; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00005 (backpatch-spring-framework@64f7330).
+  - cve: CVE-2026-41842
+    upstream: https://nvd.nist.gov/vuln/detail/CVE-2026-41842
+    artifacts:
+      - org.springframework:spring-webflux;
+      - org.springframework:spring-webmvc
+    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00006 (backpatch-spring-framework@ba5eba0..26b3074).
 tests:
-  commit: 64f73307e97650eec7e6c95db50cc3d134cd91e1
-  command: ./gradlew --quiet --no-daemon -I init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00005 -Dbackpatch.repository.url=file:///tmp/osera-unused-repo -Dbackpatch.compile.jdk=8 -p spring-websocket test --rerun-tasks --tests org.springframework.web.socket.adapter.AbstractWebSocketSessionIdGeneratorTests
+  commit: 26b30747258c78b292d91e488a55cd8f4630ea22
+  command: ./gradlew --quiet --no-daemon -I init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00006 -Dbackpatch.repository.url=file:///tmp/osera-unused-repo -Dbackpatch.compile.jdk=8 -p spring-webflux test --rerun-tasks --tests org.springframework.web.reactive.resource.ContentBasedVersionStrategyTests && ./gradlew --quiet --no-daemon -I init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00006 -Dbackpatch.repository.url=file:///tmp/osera-unused-repo -Dbackpatch.compile.jdk=8 -p spring-webmvc test --rerun-tasks --tests org.springframework.web.servlet.resource.ContentBasedVersionStrategyTests --tests org.springframework.web.servlet.resource.VersionedResourceCacheRetentionTests
   runtime: OpenJDK 1.8.0_372 (Zulu), Gradle wrapper of the repository
-  report: spring-websocket-5.3.39.1-backpatch-00005-tests.zip
+  report: spring-webflux-5.3.39.1-backpatch-00006-tests.zip
   result: pass
-  note: the regression tests the fix commits touched, 2 test(s) run, 0 failed, at the tested commit
+  note: the regression tests the fix commits touched, 12 test(s) run, 0 failed, at the tested commit
