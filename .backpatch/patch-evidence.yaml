@@ -1,6 +1,6 @@
 schema: osera-patch-evidence/0.1.0
 producer: moderne
-release: 5.3.39.1-backpatch-00008
+release: 5.3.39.1-backpatch-00009
 baseline: v5.3.39+backpatch.baseline
 fixes:
   - cve: CVE-2016-1000027
@@ -45,21 +45,26 @@ fixes:
     upstream: https://nvd.nist.gov/vuln/detail/CVE-2026-41849
     artifacts:
       - org.springframework:spring-expression
-    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00008 (backpatch-spring-framework@a533038..ffdf53f).
+    note: Carried from 5.3.39.1-backpatch-00008; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00008 (backpatch-spring-framework@a533038..ffdf53f).
   - cve: CVE-2026-41850
     upstream: https://nvd.nist.gov/vuln/detail/CVE-2026-41850
     artifacts:
       - org.springframework:spring-expression
-    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00008 (backpatch-spring-framework@a533038..ffdf53f).
+    note: Carried from 5.3.39.1-backpatch-00008; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00008 (backpatch-spring-framework@a533038..ffdf53f).
   - cve: CVE-2026-41851
     upstream: https://nvd.nist.gov/vuln/detail/CVE-2026-41851
     artifacts:
       - org.springframework:spring-expression
-    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00008 (backpatch-spring-framework@a533038..ffdf53f).
+    note: Carried from 5.3.39.1-backpatch-00008; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00008 (backpatch-spring-framework@a533038..ffdf53f).
+  - cve: CVE-2026-22740
+    upstream: https://nvd.nist.gov/vuln/detail/CVE-2026-22740
+    artifacts:
+      - org.springframework:spring-webflux
+    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00009 (backpatch-spring-framework@df02aba..abc12e9).
 tests:
-  commit: ffdf53f3e7ef3dee3dd301d91057d461859b13f8
-  command: ./gradlew --quiet --no-daemon -I init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00008 -Dbackpatch.repository.url=file:///tmp/osera-unused-repo -Dbackpatch.compile.jdk=8 -p spring-expression test --rerun-tasks --tests org.springframework.expression.spel.SpelEvaluationLimitTests
+  commit: abc12e93bd94eed2bab3b3712905b79daaf33354
+  command: ./gradlew --quiet --no-daemon -I init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00009 -Dbackpatch.repository.url=file:///tmp/osera-unused-repo -Dbackpatch.compile.jdk=8 -p spring-web test --rerun-tasks --tests org.springframework.http.codec.multipart.MultipartTempFileDiscardTests
   runtime: OpenJDK 1.8.0_372 (Zulu), Gradle wrapper of the repository
-  report: spring-expression-5.3.39.1-backpatch-00008-tests.zip
+  report: spring-webflux-5.3.39.1-backpatch-00009-tests.zip
   result: pass
-  note: the regression tests the fix commits touched, 14 test(s) run, 0 failed, at the tested commit
+  note: the regression tests the fix commits touched, 2 test(s) run, 0 failed, at the tested commit
