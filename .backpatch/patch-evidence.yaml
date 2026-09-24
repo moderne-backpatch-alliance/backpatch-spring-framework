@@ -1,17 +1,23 @@
 schema: osera-patch-evidence/0.1.0
 producer: moderne
-release: 5.3.39.1-backpatch-00001
+release: 5.3.39.1-backpatch-00002
 baseline: v5.3.39+backpatch.baseline
 fixes:
   - cve: CVE-2016-1000027
     upstream: https://nvd.nist.gov/vuln/detail/CVE-2016-1000027
     artifacts:
       - org.springframework:spring-web
-    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00001 (backpatch-spring-framework@0b5fbdb..c647e92).
+    note: Carried from 5.3.39.1-backpatch-00001; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00001 (backpatch-spring-framework@0b5fbdb..c647e92).
+  - cve: CVE-2024-38816
+    upstream: https://nvd.nist.gov/vuln/detail/CVE-2024-38816
+    artifacts:
+      - org.springframework:spring-webflux;
+      - org.springframework:spring-webmvc
+    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00002 (backpatch-spring-framework@0527163).
 tests:
-  commit: c647e92a4d70479c1d057fe093fa3c731d441602
-  command: ./gradlew --quiet --no-daemon -I init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00001 -Dbackpatch.repository.url=file:///tmp/osera-unused-repo -Dbackpatch.compile.jdk=8 -p spring-web test --rerun-tasks --tests org.springframework.remoting.httpinvoker.HttpInvokerDeserializationGuardTests --tests org.springframework.remoting.httpinvoker.HttpInvokerTests
+  commit: 0527163778479f781b3b2cc78d4c386f04cd8533
+  command: ./gradlew --quiet --no-daemon -I init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00002 -Dbackpatch.repository.url=file:///tmp/osera-unused-repo -Dbackpatch.compile.jdk=8 -p spring-webflux test --rerun-tasks --tests org.springframework.web.reactive.function.server.PathResourceLookupFunctionPathTraversalTests && ./gradlew --quiet --no-daemon -I init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00002 -Dbackpatch.repository.url=file:///tmp/osera-unused-repo -Dbackpatch.compile.jdk=8 -p spring-webmvc test --rerun-tasks --tests org.springframework.web.servlet.function.PathResourceLookupFunctionPathTraversalTests
   runtime: OpenJDK 1.8.0_372 (Zulu), Gradle wrapper of the repository
-  report: spring-web-5.3.39.1-backpatch-00001-tests.zip
+  report: spring-webflux-5.3.39.1-backpatch-00002-tests.zip
   result: pass
-  note: the regression tests the fix commits touched, 13 test(s) run, 0 failed, at the tested commit
+  note: the regression tests the fix commits touched, 3 test(s) run, 0 failed, at the tested commit
