@@ -1,6 +1,6 @@
 schema: osera-patch-evidence/0.1.0
 producer: moderne
-release: 5.3.39.1-backpatch-00004
+release: 5.3.39.1-backpatch-00005
 baseline: v5.3.39+backpatch.baseline
 fixes:
   - cve: CVE-2016-1000027
@@ -24,11 +24,16 @@ fixes:
     upstream: https://nvd.nist.gov/vuln/detail/CVE-2025-41249
     artifacts:
       - org.springframework:spring-core
-    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00004 (backpatch-spring-framework@c86ba0d..8a0071a).
+    note: Carried from 5.3.39.1-backpatch-00004; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00004 (backpatch-spring-framework@c86ba0d..8a0071a).
+  - cve: CVE-2026-41838
+    upstream: https://nvd.nist.gov/vuln/detail/CVE-2026-41838
+    artifacts:
+      - org.springframework:spring-websocket
+    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00005 (backpatch-spring-framework@64f7330).
 tests:
-  commit: 8a0071aa59ba8776bf4b78171d3951ea11a16a2f
-  command: ./gradlew --quiet --no-daemon -I init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00004 -Dbackpatch.repository.url=file:///tmp/osera-unused-repo -Dbackpatch.compile.jdk=8 -p spring-core test --rerun-tasks --tests org.springframework.core.annotation.MergedAnnotationsTests && ./gradlew --quiet --no-daemon -I init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00004 -Dbackpatch.repository.url=file:///tmp/osera-unused-repo -Dbackpatch.compile.jdk=8 -p spring-web test --rerun-tasks --tests org.springframework.web.method.HandlerMethodTests
+  commit: 64f73307e97650eec7e6c95db50cc3d134cd91e1
+  command: ./gradlew --quiet --no-daemon -I init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00005 -Dbackpatch.repository.url=file:///tmp/osera-unused-repo -Dbackpatch.compile.jdk=8 -p spring-websocket test --rerun-tasks --tests org.springframework.web.socket.adapter.AbstractWebSocketSessionIdGeneratorTests
   runtime: OpenJDK 1.8.0_372 (Zulu), Gradle wrapper of the repository
-  report: spring-core-5.3.39.1-backpatch-00004-tests.zip
+  report: spring-websocket-5.3.39.1-backpatch-00005-tests.zip
   result: pass
-  note: the regression tests the fix commits touched, 174 test(s) run, 0 failed, at the tested commit
+  note: the regression tests the fix commits touched, 2 test(s) run, 0 failed, at the tested commit
