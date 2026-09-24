@@ -1,6 +1,6 @@
 schema: osera-patch-evidence/0.1.0
 producer: moderne
-release: 5.3.39.1-backpatch-00011
+release: 5.3.39.1-backpatch-00012
 baseline: v5.3.39+backpatch.baseline
 fixes:
   - cve: CVE-2016-1000027
@@ -71,11 +71,16 @@ fixes:
     upstream: https://nvd.nist.gov/vuln/detail/CVE-2026-41845
     artifacts:
       - org.springframework:spring-webmvc
-    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00011 (backpatch-spring-framework@488f0cf).
+    note: Carried from 5.3.39.1-backpatch-00011; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00011 (backpatch-spring-framework@488f0cf).
+  - cve: CVE-2026-41846
+    upstream: https://nvd.nist.gov/vuln/detail/CVE-2026-41846
+    artifacts:
+      - org.springframework:spring-webmvc
+    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00012 (backpatch-spring-framework@f75ea09).
 tests:
-  commit: 488f0cf3b78376597cdf80b279c5f411601330aa
-  command: ./gradlew --quiet --no-daemon -I init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00011 -Dbackpatch.repository.url=file:///tmp/osera-unused-repo -Dbackpatch.compile.jdk=8 -p spring-web test --rerun-tasks --tests org.springframework.web.util.JavaScriptUtilsTests
+  commit: f75ea09df2a71ae6fdc6a6f8a2131ec8bd23be33
+  command: ./gradlew --quiet --no-daemon -I init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00012 -Dbackpatch.repository.url=file:///tmp/osera-unused-repo -Dbackpatch.compile.jdk=8 -p spring-webmvc test --rerun-tasks --tests org.springframework.web.servlet.tags.form.FormTagTests --tests org.springframework.web.servlet.tags.form.InputTagTests
   runtime: OpenJDK 1.8.0_372 (Zulu), Gradle wrapper of the repository
-  report: spring-webmvc-5.3.39.1-backpatch-00011-tests.zip
+  report: spring-webmvc-5.3.39.1-backpatch-00012-tests.zip
   result: pass
-  note: the regression tests the fix commits touched, 5 test(s) run, 0 failed, at the tested commit
+  note: the regression tests the fix commits touched, 29 test(s) run, 0 failed, at the tested commit
