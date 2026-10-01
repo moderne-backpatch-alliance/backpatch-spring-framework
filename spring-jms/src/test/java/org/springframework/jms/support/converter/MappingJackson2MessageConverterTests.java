@@ -36,6 +36,7 @@ import org.mockito.stubbing.Answer;
 import org.springframework.core.MethodParameter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
@@ -47,6 +48,7 @@ import static org.mockito.Mockito.verify;
  * @author Arjen Poutsma
  * @author Dave Syer
  * @author Stephane Nicoll
+ * @author Sebastien Deleuze
  */
 class MappingJackson2MessageConverterTests {
 
@@ -132,6 +134,101 @@ class MappingJackson2MessageConverterTests {
 
 		MyBean result = (MyBean)converter.fromMessage(textMessageMock);
 		assertThat(unmarshalled).as("Invalid result").isEqualTo(result);
+	}
+
+	@Test
+	void fromTextMessageUntrusted() throws Exception {
+		converter = new MappingJackson2MessageConverter();
+		setTrustedPackages(converter, "java.lang");
+		converter.setTypeIdPropertyName("__typeid__");
+		TextMessage textMessageMock = mock(TextMessage.class);
+
+		String text = "{\"foo\":\"bar\"}";
+		given(textMessageMock.getStringProperty("__typeid__")).willReturn(MyBean.class.getName());
+		given(textMessageMock.getText()).willReturn(text);
+
+		assertThatExceptionOfType(MessageConversionException.class)
+				.isThrownBy(() -> converter.fromMessage(textMessageMock))
+				.withMessageContaining("is not in the trusted packages");
+	}
+
+	@Test
+	void fromTextMessageTrusted() throws Exception {
+		converter = new MappingJackson2MessageConverter();
+		setTrustedPackages(converter, "java.lang", "org.springframework.jms.support.converter");
+		converter.setTypeIdPropertyName("__typeid__");
+		TextMessage textMessageMock = mock(TextMessage.class);
+		MyBean unmarshalled = new MyBean("bar");
+
+		String text = "{\"foo\":\"bar\"}";
+		given(textMessageMock.getStringProperty("__typeid__")).willReturn(MyBean.class.getName());
+		given(textMessageMock.getText()).willReturn(text);
+
+		MyBean result = (MyBean) converter.fromMessage(textMessageMock);
+		assertThat(unmarshalled).as("Invalid result").isEqualTo(result);
+	}
+
+	@Test
+	void fromTextMessageTrustedEmpty() throws Exception {
+		converter = new MappingJackson2MessageConverter();
+		setTrustedPackages(converter);
+		converter.setTypeIdPropertyName("__typeid__");
+		TextMessage textMessageMock = mock(TextMessage.class);
+
+		String text = "{\"foo\":\"bar\"}";
+		given(textMessageMock.getStringProperty("__typeid__")).willReturn(MyBean.class.getName());
+		given(textMessageMock.getText()).willReturn(text);
+
+		assertThatExceptionOfType(MessageConversionException.class)
+				.isThrownBy(() -> converter.fromMessage(textMessageMock))
+				.withMessageContaining("is not in the trusted packages");
+	}
+
+	@Test
+	void fromTextMessageTrusted1DArray() throws Exception {
+		converter = new MappingJackson2MessageConverter();
+		setTrustedPackages(converter, "org.springframework.jms.support.converter");
+		converter.setTypeIdPropertyName("__typeid__");
+		TextMessage textMessageMock = mock(TextMessage.class);
+		MyBean[] unmarshalled = new MyBean[] { new MyBean("bar") };
+
+		String text = "[{\"foo\":\"bar\"}]";
+		given(textMessageMock.getStringProperty("__typeid__")).willReturn("[L" + MyBean.class.getName() + ";");
+		given(textMessageMock.getText()).willReturn(text);
+
+		MyBean[] result = (MyBean[]) converter.fromMessage(textMessageMock);
+		assertThat(unmarshalled).as("Invalid result").isEqualTo(result);
+	}
+
+	@Test
+	void fromTextMessageTrusted2DArray() throws Exception {
+		converter = new MappingJackson2MessageConverter();
+		setTrustedPackages(converter, "org.springframework.jms.support.converter");
+		converter.setTypeIdPropertyName("__typeid__");
+		TextMessage textMessageMock = mock(TextMessage.class);
+		MyBean[][] unmarshalled = new MyBean[][] { { new MyBean("bar") } };
+
+		String text = "[[{\"foo\":\"bar\"}]]";
+		given(textMessageMock.getStringProperty("__typeid__")).willReturn("[[L" + MyBean.class.getName() + ";");
+		given(textMessageMock.getText()).willReturn(text);
+
+		MyBean[][] result = (MyBean[][]) converter.fromMessage(textMessageMock);
+		assertThat(unmarshalled).as("Invalid result").isEqualTo(result);
+	}
+
+	// Reached by reflection so this class still compiles against 5.3.39, which has no setTrustedPackages;
+	// there the call is skipped and the untrusted cases fail because the foreign type is accepted.
+	private static void setTrustedPackages(MappingJackson2MessageConverter converter, String... trustedPackages)
+			throws Exception {
+
+		Method method;
+		try {
+			method = MappingJackson2MessageConverter.class.getMethod("setTrustedPackages", String[].class);
+		}
+		catch (NoSuchMethodException ex) {
+			return;
+		}
+		method.invoke(converter, (Object) trustedPackages);
 	}
 
 	@Test
