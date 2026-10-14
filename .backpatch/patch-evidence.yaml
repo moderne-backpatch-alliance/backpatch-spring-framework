@@ -1,6 +1,6 @@
 schema: osera-patch-evidence/0.1.0
 producer: moderne
-release: 5.3.39.1-backpatch-00014
+release: 5.3.39.1-backpatch-00015
 baseline: v5.3.39+backpatch.baseline
 fixes:
   - cve: CVE-2016-1000027
@@ -86,12 +86,17 @@ fixes:
     upstream: https://nvd.nist.gov/vuln/detail/CVE-2026-47884
     artifacts:
       - org.springframework:spring-webmvc
-    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00014 (backpatch-spring-framework@b3bfd95..e777020).
+    note: Carried from 5.3.39.1-backpatch-00014; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00014 (backpatch-spring-framework@b3bfd95..e777020).
+  - cve: CVE-2026-41855
+    upstream: https://nvd.nist.gov/vuln/detail/CVE-2026-41855
+    artifacts:
+      - org.springframework:spring-jms
+    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00015 (backpatch-spring-framework@59c04e0); opt-in as upstream's, so nothing changes until an application calls setTrustedPackages.
 tests:
-  commit: e777020fc7e778200f7e5155bd7526aa3de9b879
-  command: ./gradlew --no-daemon -I <alliance>/ecosystem/gradle/init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00014 -Dbackpatch.repository.url=<repository> -Dbackpatch.compile.jdk=8 -p spring-webmvc test --rerun-tasks --tests 'org.springframework.web.servlet.view.xslt.*'
+  commit: 59c04e0900de82a13808796c95523da96e43c1d3
+  command: ./gradlew --no-daemon -I <alliance>/ecosystem/gradle/init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00015 -Dbackpatch.repository.url=<repository> -Dbackpatch.compile.jdk=8 -p spring-jms test --rerun-tasks --tests 'org.springframework.jms.support.converter.MappingJackson2MessageConverterTests'
   runtime: OpenJDK 1.8.0_382 (Zulu), Gradle wrapper of the repository
-  report: spring-webmvc-5.3.39.1-backpatch-00014-tests.zip
-  report_sha256: 471ee41214101c5231b6c392ecb5c4c0c2538f8819d87a5f1d4cecbe81c39ee0
+  report: spring-jms-5.3.39.1-backpatch-00015-tests.zip
+  report_sha256: 2a47e092fb4414c726d4e480a3486b5afdf92aa6a1d1b0fbbb6d154c440f1cd3
   result: pass
-  note: the regression tests the fix and test commits touched, 23 test(s) run, 0 failed, at the tested commit; refuses stylesheet locations under WEB-INF or META-INF in any case, URL forms (file:, http:, url:, classpath:/) and ../ or ..\, before and after decoding, as 7.0.9 does; the reference docs' /WEB-INF/xsl/ prefix is refused
+  note: "the regression tests the fix commit touched, 19 test(s) run, 0 failed, at the tested commit; the fix is opt-in, as upstream's: nothing changes until an application calls setTrustedPackages"
