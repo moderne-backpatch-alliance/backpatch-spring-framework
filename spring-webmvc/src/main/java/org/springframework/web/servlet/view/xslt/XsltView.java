@@ -19,7 +19,9 @@ package org.springframework.web.servlet.view.xslt;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 
@@ -45,14 +47,17 @@ import org.w3c.dom.Node;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContextException;
 import org.springframework.core.io.Resource;
+import org.springframework.core.log.LogFormatUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.SimpleTransformErrorListener;
 import org.springframework.util.xml.TransformerUtils;
 import org.springframework.web.servlet.view.AbstractUrlBasedView;
+import org.springframework.web.util.UriUtils;
 import org.springframework.web.util.WebUtils;
 
 /**
@@ -462,16 +467,121 @@ public class XsltView extends AbstractUrlBasedView {
 	protected Source getStylesheetSource() {
 		String url = getUrl();
 		Assert.state(url != null, "'url' not set");
-
 		if (logger.isDebugEnabled()) {
 			logger.debug("Applying stylesheet [" + url + "]");
 		}
+		String location = normalizeInputPath(url);
+		if (shouldIgnoreInputPath(location)) {
+			throw new ApplicationContextException("Invalid XSLT stylesheet location '" + url + "'");
+		}
 		try {
-			Resource resource = obtainApplicationContext().getResource(url);
+			Resource resource = obtainApplicationContext().getResource(location);
 			return new StreamSource(resource.getInputStream(), resource.getURI().toASCIIString());
 		}
 		catch (IOException ex) {
 			throw new ApplicationContextException("Can't load XSLT stylesheet from '" + url + "'", ex);
+		}
+	}
+
+	private String normalizeInputPath(String path) {
+		path = StringUtils.replace(path, "\\", "/");
+		path = cleanDuplicateSlashes(path);
+		return cleanLeadingSlash(path);
+	}
+
+	private String cleanDuplicateSlashes(String path) {
+		StringBuilder sb = null;
+		char prev = 0;
+		for (int i = 0; i < path.length(); i++) {
+			char curr = path.charAt(i);
+			try {
+				if ((curr == '/') && (prev == '/')) {
+					if (sb == null) {
+						sb = new StringBuilder(path.substring(0, i));
+					}
+					continue;
+				}
+				if (sb != null) {
+					sb.append(path.charAt(i));
+				}
+			}
+			finally {
+				prev = curr;
+			}
+		}
+		return (sb != null ? sb.toString() : path);
+	}
+
+	private String cleanLeadingSlash(String path) {
+		boolean slash = false;
+		for (int i = 0; i < path.length(); i++) {
+			if (path.charAt(i) == '/') {
+				slash = true;
+			}
+			else if (path.charAt(i) > ' ' && path.charAt(i) != 127) {
+				if (i == 0 || (i == 1 && slash)) {
+					return path;
+				}
+				return (slash ? "/" + path.substring(i) : path.substring(i));
+			}
+		}
+		return (slash ? "/" : "");
+	}
+
+	private boolean shouldIgnoreInputPath(String path) {
+		return (!StringUtils.hasText(path) || isInvalidPath(path) || isInvalidEncodedPath(path));
+	}
+
+	private boolean isInvalidPath(String path) {
+		String pathLowerCase = path.toLowerCase(Locale.ROOT);
+		if (pathLowerCase.contains("web-inf") || pathLowerCase.contains("meta-inf")) {
+			if (logger.isWarnEnabled()) {
+				logger.warn(LogFormatUtils.formatValue(
+						"Path with \"WEB-INF\" or \"META-INF\": [" + path + "]", -1, true));
+			}
+			return true;
+		}
+		if (path.contains(":/")) {
+			String relativePath = (path.charAt(0) == '/' ? path.substring(1) : path);
+			if (ResourceUtils.isUrl(relativePath) || relativePath.startsWith("url:")) {
+				if (logger.isWarnEnabled()) {
+					logger.warn(LogFormatUtils.formatValue(
+							"Path represents URL or has \"url:\" prefix: [" + path + "]", -1, true));
+				}
+				return true;
+			}
+		}
+		if (path.contains("../")) {
+			if (logger.isWarnEnabled()) {
+				logger.warn(LogFormatUtils.formatValue(
+						"Path contains \"../\" after call to StringUtils#cleanPath: [" + path + "]", -1, true));
+			}
+			return true;
+		}
+		return false;
+	}
+
+	private boolean isInvalidEncodedPath(String path) {
+		String decodedPath = decode(path);
+		if (decodedPath.contains("%")) {
+			decodedPath = decode(decodedPath);
+		}
+		if (!StringUtils.hasText(decodedPath)) {
+			return true;
+		}
+		if (isInvalidPath(decodedPath)) {
+			return true;
+		}
+		decodedPath = normalizeInputPath(decodedPath);
+		return isInvalidPath(decodedPath);
+	}
+
+	private String decode(String path) {
+		try {
+			return UriUtils.decode(path, StandardCharsets.UTF_8);
+		}
+		catch (Exception ex) {
+			return "";
 		}
 	}
 
