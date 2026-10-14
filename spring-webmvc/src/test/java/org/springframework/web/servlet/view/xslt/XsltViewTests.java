@@ -19,6 +19,8 @@ package org.springframework.web.servlet.view.xslt;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,18 +34,27 @@ import javax.xml.transform.stream.StreamSource;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.xml.sax.SAXException;
 
+import org.springframework.context.ApplicationContextException;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResourceLoader;
 import org.springframework.core.io.Resource;
+import org.springframework.web.context.support.GenericWebApplicationContext;
 import org.springframework.web.testfixture.servlet.MockHttpServletRequest;
 import org.springframework.web.testfixture.servlet.MockHttpServletResponse;
+import org.springframework.web.testfixture.servlet.MockServletContext;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 /**
@@ -59,6 +70,21 @@ public class XsltViewTests {
 
 	private final MockHttpServletResponse response = new MockHttpServletResponse();
 
+	@TempDir
+	Path webRoot;
+
+
+	@BeforeEach
+	public void copyStylesheetsIntoWebRoot() throws IOException {
+		// Literal %2e%2e directories, so an encoded location names an existing stylesheet whether or not it is decoded.
+		String[] dirs = {"xsl", "WEB-INF/xsl", "META-INF/xsl", "xsl/%2e%2e/WEB-INF/xsl", "xsl/%252e%252e/WEB-INF/xsl"};
+		for (String dir : dirs) {
+			Path target = Files.createDirectories(this.webRoot.resolve(dir));
+			for (String stylesheet : new String[] {"products.xsl", "productsImport.xsl"}) {
+				Files.copy(new ClassPathResource(stylesheet, getClass()).getInputStream(), target.resolve(stylesheet));
+			}
+		}
+	}
 
 	@Test
 	public void withNoSource() throws Exception {
@@ -155,6 +181,38 @@ public class XsltViewTests {
 
 	}
 
+	@ParameterizedTest
+	@ValueSource(strings = {
+			"/WEB-INF/xsl/products.xsl",
+			"WEB-INF/xsl/products.xsl",
+			"/META-INF/xsl/products.xsl",
+			"/xsl/../WEB-INF/xsl/products.xsl",
+			"/xsl/%2e%2e/WEB-INF/xsl/products.xsl",
+			"/xsl/%252e%252e/WEB-INF/xsl/products.xsl",
+			"\\xsl\\..\\WEB-INF\\xsl\\products.xsl",
+			"classpath:/org/springframework/web/servlet/view/xslt/products.xsl"
+	})
+	public void stylesheetAtRefusedLocationIsRejected(String url) {
+		assertThatExceptionOfType(ApplicationContextException.class)
+				.isThrownBy(() -> getWebXsltView(url))
+				.withMessageContaining("Invalid XSLT stylesheet location");
+	}
+
+	@Test
+	public void stylesheetFromFileUrlIsRejected() {
+		String url = this.webRoot.resolve("xsl/products.xsl").toUri().toString();
+		assertThatExceptionOfType(ApplicationContextException.class)
+				.isThrownBy(() -> getWebXsltView(url))
+				.withMessageContaining("Invalid XSLT stylesheet location");
+	}
+
+	@Test
+	public void stylesheetBesideWebInfIsLoaded() throws Exception {
+		XsltView view = getWebXsltView("/xsl/products.xsl");
+		view.render(singletonMap("someKey", getProductDataResource()), this.request, this.response);
+		assertHtmlOutput(this.response.getContentAsString());
+	}
+
 	private org.w3c.dom.Document getDomDocument() throws ParserConfigurationException, SAXException, IOException {
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder = dbf.newDocumentBuilder();
@@ -199,6 +257,15 @@ public class XsltViewTests {
 		view.setUrl(templatePath);
 		view.setApplicationContext(new StaticApplicationContext());
 		view.initApplicationContext();
+		return view;
+	}
+
+	private XsltView getWebXsltView(String templatePath) {
+		XsltView view = new XsltView();
+		view.setUrl(templatePath);
+		MockServletContext servletContext = new MockServletContext(
+				"file:" + this.webRoot.toAbsolutePath(), new FileSystemResourceLoader());
+		view.setApplicationContext(new GenericWebApplicationContext(servletContext));
 		return view;
 	}
 
