@@ -1,6 +1,6 @@
 schema: osera-patch-evidence/0.1.0
 producer: moderne
-release: 5.3.39.1-backpatch-00015
+release: 5.3.39.1-backpatch-00016
 baseline: v5.3.39+backpatch.baseline
 fixes:
   - cve: CVE-2016-1000027
@@ -91,12 +91,30 @@ fixes:
     upstream: https://nvd.nist.gov/vuln/detail/CVE-2026-41855
     artifacts:
       - org.springframework:spring-jms
-    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00015 (backpatch-spring-framework@59c04e0); opt-in as upstream's, so nothing changes until an application calls setTrustedPackages.
+    note: Carried from 5.3.39.1-backpatch-00015; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00015 (backpatch-spring-framework@59c04e0).
+  - cve: CVE-2025-41249
+    upstream: https://nvd.nist.gov/vuln/detail/CVE-2025-41249
+    artifacts:
+      - org.springframework:spring-core
+      - org.springframework:spring-web
+    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00016 (backpatch-spring-framework@eb7bfd5).
+  - cve: CVE-2026-22740
+    upstream: https://nvd.nist.gov/vuln/detail/CVE-2026-22740
+    artifacts:
+      - org.springframework:spring-webflux
+      - org.springframework:spring-web
+    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00016 (backpatch-spring-framework@eb7bfd5).
+  - cve: CVE-2026-41845
+    upstream: https://nvd.nist.gov/vuln/detail/CVE-2026-41845
+    artifacts:
+      - org.springframework:spring-webmvc
+      - org.springframework:spring-web
+    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00016 (backpatch-spring-framework@eb7bfd5).
 tests:
-  commit: 59c04e0900de82a13808796c95523da96e43c1d3
-  command: ./gradlew --no-daemon -I <alliance>/ecosystem/gradle/init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00015 -Dbackpatch.repository.url=<repository> -Dbackpatch.compile.jdk=8 -p spring-jms test --rerun-tasks --tests 'org.springframework.jms.support.converter.MappingJackson2MessageConverterTests'
+  commit: eb7bfd57027f7ce93801926f474d701e91c4e0d5
+  command: ./gradlew --no-daemon -I <alliance>/ecosystem/gradle/init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00016 -Dbackpatch.repository.url=file://<unused> -Dbackpatch.compile.jdk=8 -p spring-core test --rerun-tasks --tests '*MergedAnnotationsTests' && ./gradlew --no-daemon -I <alliance>/ecosystem/gradle/init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00016 -Dbackpatch.repository.url=file://<unused> -Dbackpatch.compile.jdk=8 -p spring-web test --rerun-tasks --tests '*HandlerMethodTests' --tests '*MultipartTempFileDiscardTests' --tests '*JavaScriptUtilsTests' --tests '*HttpInvokerDeserializationGuardTests' --tests '*HttpInvokerTests' && ./gradlew --no-daemon -I <alliance>/ecosystem/gradle/init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00016 -Dbackpatch.repository.url=file://<unused> -Dbackpatch.compile.jdk=8 -p spring-context test --rerun-tasks --tests 'org.springframework.remoting.*'
   runtime: OpenJDK 1.8.0_382 (Zulu), Gradle wrapper of the repository
-  report: spring-jms-5.3.39.1-backpatch-00015-tests.zip
-  report_sha256: 2a47e092fb4414c726d4e480a3486b5afdf92aa6a1d1b0fbbb6d154c440f1cd3
+  report: spring-web-5.3.39.1-backpatch-00016-tests.zip
+  report_sha256: bfa9294da8e86b3f164d2d8c449033a8f6b51c31ea7003f466a543f0fb2450e7
   result: pass
-  note: "the regression tests the fix commit touched, 19 test(s) run, 0 failed, at the tested commit; the fix is opt-in, as upstream's: nothing changes until an application calls setTrustedPackages"
+  note: "the regression tests the fix commits touched, at the tested commit: spring-core MergedAnnotationsTests (172) and KotlinMergedAnnotationsTests (4); spring-web HandlerMethodTests (2), InvocableHandlerMethodTests (9), MultipartTempFileDiscardTests (2), JavaScriptUtilsTests (5), HttpInvokerDeserializationGuardTests (5), HttpInvokerTests (8); spring-context org.springframework.remoting (33); 240 test(s) run, 0 failed"
