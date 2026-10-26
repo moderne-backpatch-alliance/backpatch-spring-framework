@@ -110,12 +110,27 @@ class ServerSentEventHttpMessageWriterTests extends AbstractDataBufferAllocating
 		super.bufferFactory = bufferFactory;
 
 		MockServerHttpResponse outputMessage = new MockServerHttpResponse(super.bufferFactory);
-		Flux<String> source = Flux.just("foo\nbar", "foo\nbaz");
+		Flux<String> source = Flux.just("first\nsecond", "first\rsecond", "first\r\nsecond");
 		testWrite(source, outputMessage, String.class);
 
 		StepVerifier.create(outputMessage.getBody())
-				.consumeNextWith(stringConsumer("data:foo\ndata:bar\n\n"))
-				.consumeNextWith(stringConsumer("data:foo\ndata:baz\n\n"))
+				.consumeNextWith(stringConsumer("data:first\ndata:second\n\n"))
+				.consumeNextWith(stringConsumer("data:first\ndata:second\n\n"))
+				.consumeNextWith(stringConsumer("data:first\ndata:second\n\n"))
+				.expectComplete()
+				.verify();
+	}
+
+	@ParameterizedDataBufferAllocatingTest
+	void writeMultiLineComment(DataBufferFactory bufferFactory) {
+		super.bufferFactory = bufferFactory;
+
+		ServerSentEvent<?> event = ServerSentEvent.builder().comment("foo\nbar\rbaz\r\nqux").data("payload").build();
+		MockServerHttpResponse outputMessage = new MockServerHttpResponse(super.bufferFactory);
+		testWrite(Mono.just(event), outputMessage, ServerSentEvent.class);
+
+		StepVerifier.create(outputMessage.getBody())
+				.consumeNextWith(stringConsumer(":foo\n:bar\n:baz\n:qux\ndata:payload\n\n"))
 				.expectComplete()
 				.verify();
 	}
