@@ -28,11 +28,13 @@ import org.springframework.web.reactive.socket.HandshakeInfo;
 import org.springframework.web.reactive.socket.WebSocketHandler;
 import org.springframework.web.reactive.socket.server.RequestUpgradeStrategy;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.ServerWebInputException;
 import org.springframework.web.testfixture.http.server.reactive.MockServerHttpRequest;
 import org.springframework.web.testfixture.server.MockServerWebExchange;
 import org.springframework.web.testfixture.server.MockWebSession;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -69,6 +71,37 @@ public class HandshakeWebSocketServiceTests {
 				.containsEntry("a1", "v1")
 				.containsEntry("a3", "v3")
 				.containsEntry("a5", "v5");
+	}
+
+	@Test
+	void invalidUpgradeHeaderIsRejectedWithoutEchoingRequestHeaders() {
+		MockServerHttpRequest request = MockServerHttpRequest.get("/")
+				.header("upgrade", "h2c")
+				.header("connection", "upgrade")
+				.header("Cookie", "SESSION=secret-session-id")
+				.build();
+
+		assertRejectedWithoutHeaderValues(request);
+	}
+
+	@Test
+	void invalidConnectionHeaderIsRejectedWithoutEchoingRequestHeaders() {
+		MockServerHttpRequest request = MockServerHttpRequest.get("/")
+				.header("upgrade", "websocket")
+				.header("connection", "keep-alive")
+				.header("Authorization", "Bearer secret-token")
+				.build();
+
+		assertRejectedWithoutHeaderValues(request);
+	}
+
+	private void assertRejectedWithoutHeaderValues(MockServerHttpRequest request) {
+		HandshakeWebSocketService service = new HandshakeWebSocketService(new TestRequestUpgradeStrategy());
+		MockServerWebExchange exchange = MockServerWebExchange.from(request);
+
+		assertThatExceptionOfType(ServerWebInputException.class)
+				.isThrownBy(() -> service.handleRequest(exchange, mock(WebSocketHandler.class)).block())
+				.satisfies(ex -> assertThat(ex.getReason()).doesNotContain("secret"));
 	}
 
 	private MockServerHttpRequest initHandshakeRequest() {
