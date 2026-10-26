@@ -158,12 +158,16 @@ public class Jaxb2XmlDecoder extends AbstractDecoder<Object> {
 	public Flux<Object> decode(Publisher<DataBuffer> inputStream, ResolvableType elementType,
 			@Nullable MimeType mimeType, @Nullable Map<String, Object> hints) {
 
+		XmlEventDecoder.ReceivedByteTracker byteTracker =
+				new XmlEventDecoder.ReceivedByteTracker(this.maxInMemorySize);
+
 		Flux<XMLEvent> xmlEventFlux = this.xmlEventDecoder.decode(
-				inputStream, ResolvableType.forClass(XMLEvent.class), mimeType, hints);
+				inputStream, ResolvableType.forClass(XMLEvent.class), mimeType,
+				Hints.merge(hints != null ? hints : Hints.none(), XmlEventDecoder.BYTE_TRACKER_HINT, byteTracker));
 
 		Class<?> outputClass = elementType.toClass();
 		QName typeName = toQName(outputClass);
-		Flux<List<XMLEvent>> splitEvents = split(xmlEventFlux, typeName);
+		Flux<List<XMLEvent>> splitEvents = split(xmlEventFlux, typeName, byteTracker);
 
 		return splitEvents.map(events -> {
 			Object value = unmarshal(events, outputClass);
@@ -313,14 +317,18 @@ public class Jaxb2XmlDecoder extends AbstractDecoder<Object> {
 	 * </li>
 	 * </ol>
 	 */
-	Flux<List<XMLEvent>> split(Flux<XMLEvent> xmlEventFlux, QName desiredName) {
-		return xmlEventFlux.handle(new SplitHandler(desiredName));
+	Flux<List<XMLEvent>> split(
+			Flux<XMLEvent> xmlEventFlux, QName desiredName, @Nullable XmlEventDecoder.ReceivedByteTracker byteTracker) {
+
+		return xmlEventFlux.handle(new SplitHandler(desiredName, byteTracker));
 	}
 
 
 	private static class SplitHandler implements BiConsumer<XMLEvent, SynchronousSink<List<XMLEvent>>> {
 
 		private final QName desiredName;
+
+		private final XmlEventDecoder.ReceivedByteTracker byteTracker;
 
 		@Nullable
 		private List<XMLEvent> events;
@@ -329,8 +337,9 @@ public class Jaxb2XmlDecoder extends AbstractDecoder<Object> {
 
 		private int barrier = Integer.MAX_VALUE;
 
-		public SplitHandler(QName desiredName) {
+		public SplitHandler(QName desiredName, @Nullable XmlEventDecoder.ReceivedByteTracker byteTracker) {
 			this.desiredName = desiredName;
+			this.byteTracker = (byteTracker != null ? byteTracker : XmlEventDecoder.ReceivedByteTracker.NO_OP);
 		}
 
 		@Override
@@ -352,10 +361,18 @@ public class Jaxb2XmlDecoder extends AbstractDecoder<Object> {
 			if (event.isEndElement()) {
 				this.elementDepth--;
 				if (this.elementDepth == this.barrier) {
-					this.barrier = Integer.MAX_VALUE;
 					Assert.state(this.events != null, "No XMLEvent List");
 					sink.next(this.events);
+					this.barrier = Integer.MAX_VALUE;
+					this.events = null;
 				}
+			}
+			if (this.events == null) {
+				this.byteTracker.reset();
+			}
+			else if (this.byteTracker.isMaxInMemorySizeExceeded()) {
+				throw new DataBufferLimitException(
+						"Exceeded limit on max bytes per XML node: " + this.byteTracker.getMaxInMemorySize());
 			}
 		}
 	}
