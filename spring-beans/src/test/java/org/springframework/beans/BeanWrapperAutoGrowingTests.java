@@ -16,6 +16,7 @@
 
 package org.springframework.beans;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -153,9 +154,36 @@ public class BeanWrapperAutoGrowingTests {
 	@Test
 	public void getPropertyValueAutoGrowListFailsAgainstLimit() {
 		wrapper.setAutoGrowCollectionLimit(2);
-		assertThatExceptionOfType(InvalidPropertyException.class).isThrownBy(() ->
-				wrapper.getPropertyValue("list[4]"))
-			.withRootCauseInstanceOf(IndexOutOfBoundsException.class);
+		assertThatExceptionOfType(InvalidPropertyException.class)
+				.isThrownBy(() -> wrapper.getPropertyValue("list[4]"))
+				.withMessageContainingAll(
+						"Invalid property 'list[4]'",
+						"Cannot get element with index 4 from List of size 0");
+	}
+
+	@Test
+	void getPropertyValueSelfPopulatingListWorksWithinLimit() {
+		bean.setList(new SelfPopulatingList());
+		assertThat(wrapper.getPropertyValue("list[2]")).isInstanceOf(Bean.class);
+		assertThat(bean.getList())
+				.hasSize(3)
+				.allSatisfy(entry -> assertThat(entry).isInstanceOf(Bean.class));
+	}
+
+	@Test
+	void getPropertyValueSelfPopulatingListFailsAgainstLimit() {
+		bean.setList(new SelfPopulatingList());
+		wrapper.setAutoGrowCollectionLimit(2);
+		assertThatExceptionOfType(InvalidPropertyException.class)
+				.isThrownBy(() -> wrapper.getPropertyValue("list[4]"));
+	}
+
+	@Test
+	void setPropertyValueSelfPopulatingListFailsAgainstLimitForNestedPath() {
+		bean.setList(new SelfPopulatingList());
+		wrapper.setAutoGrowCollectionLimit(2);
+		assertThatExceptionOfType(InvalidPropertyException.class)
+				.isThrownBy(() -> wrapper.setPropertyValue("list[4].prop", "test"));
 	}
 
 	@Test
@@ -297,6 +325,26 @@ public class BeanWrapperAutoGrowingTests {
 	public static class NestedNoDefaultConstructor {
 
 		private NestedNoDefaultConstructor() {
+		}
+	}
+
+
+	/**
+	 * A {@link List} implementation that creates elements on demand in {@link #get(int)}
+	 * instead of throwing {@link IndexOutOfBoundsException} for out-of-range indexes.
+	 *
+	 * <p>Used to verify that {@link BeanWrapperImpl} does not delegate to
+	 * {@link List#get(int)} for indexes beyond the configured auto-grow limit.
+	 */
+	@SuppressWarnings("serial")
+	private static class SelfPopulatingList extends ArrayList<Bean> {
+
+		@Override
+		public Bean get(int index) {
+			while (size() <= index) {
+				add(new Bean());
+			}
+			return super.get(index);
 		}
 	}
 
