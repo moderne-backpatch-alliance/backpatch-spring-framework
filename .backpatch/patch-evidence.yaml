@@ -1,120 +1,189 @@
 schema: osera-patch-evidence/0.1.0
 producer: moderne
-release: 5.3.39.1-backpatch-00016
+release: 5.3.39.1-backpatch-00017
 baseline: v5.3.39+backpatch.baseline
 fixes:
   - cve: CVE-2016-1000027
-    upstream: https://nvd.nist.gov/vuln/detail/CVE-2016-1000027
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2016-1000027
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-spring-framework/compare/0b5fbdb~1...c647e92
+    not_applicable_rationale: a provider-developed fix; no upstream-authored code to credit
+    basis: original
     artifacts:
       - org.springframework:spring-web
     note: Carried from 5.3.39.1-backpatch-00001; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00001 (backpatch-spring-framework@0b5fbdb..c647e92).
   - cve: CVE-2024-38816
-    upstream: https://nvd.nist.gov/vuln/detail/CVE-2024-38816
+    upstream_fix_url: https://github.com/spring-projects/spring-framework/commit/d86bf8b2056429edf5494456cffcb2b243331c49
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2024-38816
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-spring-framework/commit/0527163
+    basis: adapted
     artifacts:
       - org.springframework:spring-webflux
       - org.springframework:spring-webmvc
     note: Carried from 5.3.39.1-backpatch-00002; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00002 (backpatch-spring-framework@0527163).
   - cve: CVE-2024-38819
-    upstream: https://nvd.nist.gov/vuln/detail/CVE-2024-38819
+    upstream_fix_url: https://github.com/advisories/GHSA-g5vr-rgqm-vf78
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2024-38819
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-spring-framework/compare/9df5e90~1...0544754
+    basis: adapted
     artifacts:
       - org.springframework:spring-webflux
       - org.springframework:spring-webmvc
     note: Carried from 5.3.39.1-backpatch-00003; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00003 (backpatch-spring-framework@9df5e90..0544754).
   - cve: CVE-2025-41249
-    upstream: https://nvd.nist.gov/vuln/detail/CVE-2025-41249
+    upstream_fix_url: https://github.com/spring-projects/spring-framework/commit/6d710d482a6785b069e35022e81758953afc21ff
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2025-41249
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-spring-framework/compare/c86ba0d~1...8a0071a
+    basis: backport
     artifacts:
       - org.springframework:spring-core
     note: Carried from 5.3.39.1-backpatch-00004; a superseded fix, ported onto 5.3.39 at 5.3.39.1-backpatch-00004 (backpatch-spring-framework@c86ba0d..8a0071a).
   - cve: CVE-2026-41838
-    upstream: https://nvd.nist.gov/vuln/detail/CVE-2026-41838
+    upstream_fix_url: https://github.com/spring-projects/spring-framework/commit/a42a6e0c6ac64eb18954729ca5e3fe64b05a39b5
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2026-41838
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-spring-framework/commit/64f7330
+    basis: backport
     artifacts:
       - org.springframework:spring-websocket
     note: Carried from 5.3.39.1-backpatch-00005; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00005 (backpatch-spring-framework@64f7330).
   - cve: CVE-2026-41842
-    upstream: https://nvd.nist.gov/vuln/detail/CVE-2026-41842
+    upstream_fix_url: https://github.com/spring-projects/spring-framework/commit/8d51f47357e4830076b9630ffc8bfbb2a2831260
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2026-41842
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-spring-framework/compare/ba5eba0~1...26b3074
+    basis: adapted
     artifacts:
       - org.springframework:spring-webflux
       - org.springframework:spring-webmvc
     note: Carried from 5.3.39.1-backpatch-00006; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00006 (backpatch-spring-framework@ba5eba0..26b3074).
   - cve: CVE-2026-41848
-    upstream: https://nvd.nist.gov/vuln/detail/CVE-2026-41848
+    upstream_fix_url: https://github.com/spring-projects/spring-framework/commit/b294371a46ec98bbc6c620c04567169b10675cb3
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2026-41848
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-spring-framework/compare/a0c8ebb~1...f5b59f7
+    basis: backport
     artifacts:
       - org.springframework:spring-core
     note: Carried from 5.3.39.1-backpatch-00007; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00007 (backpatch-spring-framework@a0c8ebb..f5b59f7).
   - cve: CVE-2026-41849
-    upstream: https://nvd.nist.gov/vuln/detail/CVE-2026-41849
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2026-41849
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-spring-framework/compare/a533038~1...ffdf53f
+    not_applicable_rationale: a provider-developed fix; no upstream-authored code to credit
+    basis: original
     artifacts:
       - org.springframework:spring-expression
     note: Carried from 5.3.39.1-backpatch-00008; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00008 (backpatch-spring-framework@a533038..ffdf53f).
   - cve: CVE-2026-41850
-    upstream: https://nvd.nist.gov/vuln/detail/CVE-2026-41850
+    upstream_fix_url: https://github.com/spring-projects/spring-framework/commit/76a36dfd707cddbe7118a81c2e055b36501d2cff
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2026-41850
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-spring-framework/compare/a533038~1...ffdf53f
+    basis: adapted
     artifacts:
       - org.springframework:spring-expression
     note: Carried from 5.3.39.1-backpatch-00008; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00008 (backpatch-spring-framework@a533038..ffdf53f).
   - cve: CVE-2026-41851
-    upstream: https://nvd.nist.gov/vuln/detail/CVE-2026-41851
+    upstream_fix_url: https://github.com/spring-projects/spring-framework/commit/ec89834fa8f633b173de094be257b9dde37a0fc8
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2026-41851
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-spring-framework/compare/a533038~1...ffdf53f
+    basis: adapted
     artifacts:
       - org.springframework:spring-expression
     note: Carried from 5.3.39.1-backpatch-00008; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00008 (backpatch-spring-framework@a533038..ffdf53f).
   - cve: CVE-2026-22740
-    upstream: https://nvd.nist.gov/vuln/detail/CVE-2026-22740
+    upstream_fix_url: https://github.com/spring-projects/spring-framework/commit/b338fdd99dd87974870f90ababb39fcb8727e1b4
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2026-22740
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-spring-framework/compare/df02aba~1...abc12e9
+    basis: backport
     artifacts:
       - org.springframework:spring-webflux
     note: Carried from 5.3.39.1-backpatch-00009; a superseded fix, ported onto 5.3.39 at 5.3.39.1-backpatch-00009 (backpatch-spring-framework@df02aba..abc12e9).
   - cve: CVE-2026-41844
-    upstream: https://nvd.nist.gov/vuln/detail/CVE-2026-41844
+    upstream_fix_url: https://github.com/spring-projects/spring-framework/commit/3aaec987651cf82fd4ed7e0ed9b3deddcdf58853
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2026-41844
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-spring-framework/compare/1e9a02b~1...54183d2
+    basis: adapted
     artifacts:
       - org.springframework:spring-webflux
       - org.springframework:spring-webmvc
     note: Carried from 5.3.39.1-backpatch-00010; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00010 (backpatch-spring-framework@1e9a02b..54183d2).
   - cve: CVE-2026-41845
-    upstream: https://nvd.nist.gov/vuln/detail/CVE-2026-41845
+    upstream_fix_url: https://github.com/spring-projects/spring-framework/commit/86d99790dbaa8ce6bb1087ef92844d0abfdab015
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2026-41845
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-spring-framework/commit/488f0cf
+    basis: backport
     artifacts:
       - org.springframework:spring-webmvc
     note: Carried from 5.3.39.1-backpatch-00011; a superseded fix, ported onto 5.3.39 at 5.3.39.1-backpatch-00011 (backpatch-spring-framework@488f0cf).
   - cve: CVE-2026-41846
-    upstream: https://nvd.nist.gov/vuln/detail/CVE-2026-41846
+    upstream_fix_url: https://github.com/spring-projects/spring-framework/commit/1829b42b9c45e780c268dd17863d9198d62154d3
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2026-41846
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-spring-framework/commit/f75ea09
+    basis: backport
     artifacts:
       - org.springframework:spring-webmvc
     note: Carried from 5.3.39.1-backpatch-00012; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00012 (backpatch-spring-framework@f75ea09).
   - cve: CVE-2026-47892
-    upstream: https://nvd.nist.gov/vuln/detail/CVE-2026-47892
+    upstream_fix_url: https://github.com/spring-projects/spring-framework/commit/07cbd482a0006d42eef61cede2b8a125c2b2a748
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2026-47892
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-spring-framework/commit/8244f32
+    basis: backport
     artifacts:
       - org.springframework:spring-webflux
     note: Carried from 5.3.39.1-backpatch-00013; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00013 (backpatch-spring-framework@8244f32).
   - cve: CVE-2026-47884
-    upstream: https://nvd.nist.gov/vuln/detail/CVE-2026-47884
+    upstream_fix_url: https://github.com/spring-projects/spring-framework/commit/692dbc9160de3b5de50ccedeee014716d0cedb7b
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2026-47884
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-spring-framework/compare/b3bfd95~1...e777020
+    basis: adapted
     artifacts:
       - org.springframework:spring-webmvc
     note: Carried from 5.3.39.1-backpatch-00014; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00014 (backpatch-spring-framework@b3bfd95..e777020).
   - cve: CVE-2026-41855
-    upstream: https://nvd.nist.gov/vuln/detail/CVE-2026-41855
+    upstream_fix_url: https://github.com/spring-projects/spring-framework/commit/ee4e79002bda440f76740099a7e9b225e7f727ab
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2026-41855
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-spring-framework/commit/59c04e0
+    basis: backport
     artifacts:
       - org.springframework:spring-jms
     note: Carried from 5.3.39.1-backpatch-00015; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00015 (backpatch-spring-framework@59c04e0).
   - cve: CVE-2025-41249
-    upstream: https://nvd.nist.gov/vuln/detail/CVE-2025-41249
+    upstream_fix_url: https://github.com/spring-projects/spring-framework/commit/6d710d482a6785b069e35022e81758953afc21ff
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2025-41249
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-spring-framework/commit/eb7bfd5
+    basis: backport
     artifacts:
       - org.springframework:spring-core
       - org.springframework:spring-web
-    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00016 (backpatch-spring-framework@eb7bfd5).
+    note: Carried from 5.3.39.1-backpatch-00016; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00016 (backpatch-spring-framework@eb7bfd5).
   - cve: CVE-2026-22740
-    upstream: https://nvd.nist.gov/vuln/detail/CVE-2026-22740
+    upstream_fix_url: https://github.com/spring-projects/spring-framework/commit/b338fdd99dd87974870f90ababb39fcb8727e1b4
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2026-22740
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-spring-framework/commit/eb7bfd5
+    basis: backport
     artifacts:
       - org.springframework:spring-webflux
       - org.springframework:spring-web
-    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00016 (backpatch-spring-framework@eb7bfd5).
+    note: Carried from 5.3.39.1-backpatch-00016; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00016 (backpatch-spring-framework@eb7bfd5).
   - cve: CVE-2026-41845
-    upstream: https://nvd.nist.gov/vuln/detail/CVE-2026-41845
+    upstream_fix_url: https://github.com/spring-projects/spring-framework/commit/86d99790dbaa8ce6bb1087ef92844d0abfdab015
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2026-41845
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-spring-framework/commit/eb7bfd5
+    basis: backport
     artifacts:
       - org.springframework:spring-webmvc
       - org.springframework:spring-web
-    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00016 (backpatch-spring-framework@eb7bfd5).
+    note: Carried from 5.3.39.1-backpatch-00016; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00016 (backpatch-spring-framework@eb7bfd5).
+  - cve: CVE-2026-22735
+    upstream_fix_url: https://github.com/advisories/GHSA-6hcq-hmm3-jj3c
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2026-22735
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-spring-framework/commit/528428e
+    basis: adapted
+    artifacts:
+      - org.springframework:spring-web
+      - org.springframework:spring-webmvc
+    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00017 (backpatch-spring-framework@528428e).
 tests:
-  commit: eb7bfd57027f7ce93801926f474d701e91c4e0d5
-  command: ./gradlew --no-daemon -I <alliance>/ecosystem/gradle/init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00016 -Dbackpatch.repository.url=file://<unused> -Dbackpatch.compile.jdk=8 -p spring-core test --rerun-tasks --tests '*MergedAnnotationsTests' && ./gradlew --no-daemon -I <alliance>/ecosystem/gradle/init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00016 -Dbackpatch.repository.url=file://<unused> -Dbackpatch.compile.jdk=8 -p spring-web test --rerun-tasks --tests '*HandlerMethodTests' --tests '*MultipartTempFileDiscardTests' --tests '*JavaScriptUtilsTests' --tests '*HttpInvokerDeserializationGuardTests' --tests '*HttpInvokerTests' && ./gradlew --no-daemon -I <alliance>/ecosystem/gradle/init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00016 -Dbackpatch.repository.url=file://<unused> -Dbackpatch.compile.jdk=8 -p spring-context test --rerun-tasks --tests 'org.springframework.remoting.*'
+  commit: 528428edc51de9f083c82df55137ceb1379c5a9d
+  command: ./gradlew --no-daemon -I <alliance>/ecosystem/gradle/init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00017 -Dbackpatch.repository.url=file:///nonexistent -Dbackpatch.compile.jdk=8 :spring-web:test :spring-webmvc:test --rerun-tasks --continue
   runtime: OpenJDK 1.8.0_382 (Zulu), Gradle wrapper of the repository
-  report: spring-web-5.3.39.1-backpatch-00016-tests.zip
-  report_sha256: bfa9294da8e86b3f164d2d8c449033a8f6b51c31ea7003f466a543f0fb2450e7
+  report: spring-web-5.3.39.1-backpatch-00017-tests.zip
+  report_sha256: 149ce73af792b24b74d9ad5107877a9e83e73ca592923aa755019bc15f92e35c
   result: pass
-  note: "the regression tests the fix commits touched, at the tested commit: spring-core MergedAnnotationsTests (172) and KotlinMergedAnnotationsTests (4); spring-web HandlerMethodTests (2), InvocableHandlerMethodTests (9), MultipartTempFileDiscardTests (2), JavaScriptUtilsTests (5), HttpInvokerDeserializationGuardTests (5), HttpInvokerTests (8); spring-context org.springframework.remoting (33); 240 test(s) run, 0 failed"
+  note: the full spring-web and spring-webmvc module suites, 2631 and 2580 tests run, 0 failed, 0 errors, 7 and 2 skipped, at the tested commit
