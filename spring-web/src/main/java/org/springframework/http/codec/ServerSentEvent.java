@@ -110,6 +110,42 @@ public final class ServerSentEvent<T> {
 	}
 
 
+	// Package-local copy of org.springframework.web.util.SeeUtils
+	// in order to avoid public utility methods in org.springframework.http
+	// as well as a package dependency cycle between the http and web packages.
+
+	static void appendFieldValue(String field, String value, StringBuilder output) {
+		if (value.indexOf('\n') == -1 && value.indexOf('\r') == -1) {
+			output.append(value);
+			return;
+		}
+		String lineSeparatorReplacement = "\n" + field + ":";
+		int length = value.length();
+		for (int i = 0; i < length; i++) {
+			char c = value.charAt(i);
+			if (c == '\r') {
+				if (i + 1 < length && value.charAt(i + 1) == '\n') {
+					i++;
+				}
+				output.append(lineSeparatorReplacement);
+			}
+			else if (c == '\n') {
+				output.append(lineSeparatorReplacement);
+			}
+			else {
+				output.append(c);
+			}
+		}
+	}
+
+	static void assertNoLineSeparator(String content) {
+		Assert.isTrue(content.indexOf('\n') == -1 && content.indexOf('\r') == -1,
+				"illegal character '\\n' or '\\r' in event content");
+	}
+
+
+	// Builder methods
+
 	/**
 	 * Return a builder for a {@code SseEvent}.
 	 * @param <T> the type of data that this event contains
@@ -209,21 +245,16 @@ public final class ServerSentEvent<T> {
 
 		@Override
 		public Builder<T> id(String id) {
-			checkEvent(id);
+			assertNoLineSeparator(id);
 			this.id = id;
 			return this;
 		}
 
 		@Override
 		public Builder<T> event(String event) {
-			checkEvent(event);
+			assertNoLineSeparator(event);
 			this.event = event;
 			return this;
-		}
-
-		private static void checkEvent(String content) {
-			Assert.isTrue(content.indexOf('\n') == -1 && content.indexOf('\r') == -1,
-					"illegal character '\\n' or '\\r' in event content");
 		}
 
 		@Override

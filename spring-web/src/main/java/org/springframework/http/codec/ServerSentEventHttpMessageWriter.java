@@ -141,7 +141,7 @@ public class ServerSentEventHttpMessageWriter implements HttpMessageWriter<Objec
 			}
 			if (comment != null) {
 				sb.append(':');
-				appendEscaped(comment, "\n:", sb);
+				ServerSentEvent.appendFieldValue("", comment, sb);
 				sb.append('\n');
 			}
 			if (data != null) {
@@ -153,7 +153,7 @@ public class ServerSentEventHttpMessageWriter implements HttpMessageWriter<Objec
 				result = Flux.just(encodeText(sb + "\n", mediaType, factory));
 			}
 			else if (data instanceof String) {
-				appendEscaped((String) data, "\ndata:", sb);
+				ServerSentEvent.appendFieldValue("data", (String) data, sb);
 				sb.append("\n\n");
 				result = Flux.just(encodeText(sb, mediaType, factory));
 			}
@@ -163,30 +163,6 @@ public class ServerSentEventHttpMessageWriter implements HttpMessageWriter<Objec
 
 			return result.doOnDiscard(PooledDataBuffer.class, DataBufferUtils::release);
 		});
-	}
-
-	private static void appendEscaped(String input, String replacement, StringBuilder sb) {
-		if (input.indexOf('\n') == -1 && input.indexOf('\r') == -1) {
-			sb.append(input);
-		}
-		else {
-			int length = input.length();
-			for (int i = 0; i < length; i++) {
-				char c = input.charAt(i);
-				if (c == '\r') {
-					if (i + 1 < length && input.charAt(i + 1) == '\n') {
-						i++;
-					}
-					sb.append(replacement);
-				}
-				else if (c == '\n') {
-					sb.append(replacement);
-				}
-				else {
-					sb.append(c);
-				}
-			}
-		}
 	}
 
 	@SuppressWarnings("unchecked")
