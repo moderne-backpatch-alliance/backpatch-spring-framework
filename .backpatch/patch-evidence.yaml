@@ -1,6 +1,6 @@
 schema: osera-patch-evidence/0.1.0
 producer: moderne
-release: 5.3.39.1-backpatch-00020
+release: 5.3.39.1-backpatch-00021
 baseline: v5.3.39+backpatch.baseline
 fixes:
   - cve: CVE-2016-1000027
@@ -203,12 +203,20 @@ fixes:
     basis: adapted
     artifacts:
       - org.springframework:spring-web
-    note: "New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00020 (backpatch-spring-framework@efd94fe). Behaviour change, as upstream: the WebFlux XML decoders' maxInMemorySize now bounds the bytes behind each split element; XmlEventDecoder used on its own no longer applies a limit, and setMaxInMemorySize(0) on the Aalto path rejects every element."
+    note: Carried from 5.3.39.1-backpatch-00020; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00020 (backpatch-spring-framework@efd94fe).
+  - cve: CVE-2026-59282
+    upstream_fix_url: https://github.com/spring-projects/spring-framework/commit/d186b381b989da493225b79629ef74ffb02bb3ab
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2026-59282
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-spring-framework/commit/f450cf6
+    basis: backport
+    artifacts:
+      - org.springframework:spring-beans
+    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00021 (backpatch-spring-framework@f450cf6).
 tests:
-  commit: efd94fe2d63c0b80b829e212faf69dded6b0257a
-  command: ./gradlew --no-daemon -I <alliance>/ecosystem/gradle/init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00020 -Dbackpatch.repository.url=file:///nonexistent -Dbackpatch.compile.jdk=8 :spring-web:test --rerun-tasks --continue
+  commit: f450cf6d5095755658b5a72269bbb857048afc18
+  command: ./gradlew --no-daemon -I <alliance>/ecosystem/gradle/init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00021 -Dbackpatch.repository.url=file:///nonexistent -Dbackpatch.compile.jdk=8 :spring-beans:test --rerun-tasks --continue
   runtime: OpenJDK 1.8.0_382 (Zulu), Gradle wrapper of the repository
-  report: spring-web-5.3.39.1-backpatch-00020-tests.zip
-  report_sha256: 3855ea6737608abfd727befc5a0bf94b90f52be21d9ed9ce8d2120b60979e6e3
+  report: spring-beans-5.3.39.1-backpatch-00021-tests.zip
+  report_sha256: 8c9aed79aa1a00e1b94d2e001cad305ea29c0b5ca22aeb00a60d57028be2c8b4
   result: pass
-  note: the full module suites (spring-web 2642 tests run), 0 failed, 0 errors, 7 skipped, at the tested commit
+  note: the full module suites (spring-beans 1627 tests run), 0 failed, 0 errors, 10 skipped, at the tested commit
