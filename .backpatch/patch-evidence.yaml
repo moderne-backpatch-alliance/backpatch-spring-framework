@@ -1,6 +1,6 @@
 schema: osera-patch-evidence/0.1.0
 producer: moderne
-release: 5.3.39.1-backpatch-00018
+release: 5.3.39.1-backpatch-00019
 baseline: v5.3.39+backpatch.baseline
 fixes:
   - cve: CVE-2016-1000027
@@ -187,12 +187,20 @@ fixes:
     artifacts:
       - org.springframework:spring-web
       - org.springframework:spring-webmvc
-    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00018 (backpatch-spring-framework@1a711cc).
+    note: Carried from 5.3.39.1-backpatch-00018; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00018 (backpatch-spring-framework@1a711cc).
+  - cve: CVE-2026-47893
+    upstream_fix_url: https://github.com/spring-projects/spring-framework/commit/dadd474d214de7a39d7c025a807e4434c3584832
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2026-47893
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-spring-framework/commit/461669d
+    basis: adapted
+    artifacts:
+      - org.springframework:spring-webflux
+    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00019 (backpatch-spring-framework@461669d).
 tests:
-  commit: 1a711cc0b9aa5ecefb5bd1f5c211ffe5f2f1281e
-  command: ./gradlew --no-daemon -I <alliance>/ecosystem/gradle/init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00018 -Dbackpatch.repository.url=file:///nonexistent -Dbackpatch.compile.jdk=8 :spring-web:test :spring-webmvc:test --rerun-tasks --continue
+  commit: 461669d7681c0cf6141931897db024aab9ae012e
+  command: ./gradlew --no-daemon -I <alliance>/ecosystem/gradle/init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00019 -Dbackpatch.repository.url=file:///nonexistent -Dbackpatch.compile.jdk=8 :spring-webflux:test --rerun-tasks --continue
   runtime: OpenJDK 1.8.0_382 (Zulu), Gradle wrapper of the repository
-  report: spring-web-5.3.39.1-backpatch-00018-tests.zip
-  report_sha256: 9d6211d69e10183e32a486a3109acf907700c12da721e69e27f25d678b2b92c0
+  report: spring-webflux-5.3.39.1-backpatch-00019-tests.zip
+  report_sha256: 5d98247d37c2492c44d5082bb707e97ad6f212fdc548ae43b23e64f62eb4a8fa
   result: pass
-  note: the full module suites (spring-web 2642, spring-webmvc 2582 tests run), 0 failed, 0 errors, 7+2 skipped, at the tested commit
+  note: the full module suites (spring-webflux 2027 tests run), 0 failed, 0 errors, 16 skipped, at the tested commit
