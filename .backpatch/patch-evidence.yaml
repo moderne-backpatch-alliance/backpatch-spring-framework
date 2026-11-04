@@ -1,6 +1,6 @@
 schema: osera-patch-evidence/0.1.0
 producer: moderne
-release: 5.3.39.1-backpatch-00024
+release: 5.3.39.1-backpatch-00025
 baseline: v5.3.39+backpatch.baseline
 fixes:
   - cve: CVE-2016-1000027
@@ -235,12 +235,11 @@ fixes:
     basis: adapted
     artifacts:
       - org.springframework:spring-expression
-    note: "New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00024 (backpatch-spring-framework@a48343e). Behaviour change, as upstream: SimpleEvaluationContext no longer compiles expressions, and does not run an expression compiled elsewhere, unless built with withCompilationSupported()."
+    note: Carried from 5.3.39.1-backpatch-00024; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00024 (backpatch-spring-framework@a48343e).
 tests:
-  commit: a48343ecf63502e922b9cc16556709e5c9d584a9
-  command: ./gradlew --no-daemon -I <alliance>/ecosystem/gradle/init-backpatch.gradle -Dbackpatch.version=5.3.39.1-backpatch-00024 -Dbackpatch.repository.url=file:///nonexistent -Dbackpatch.compile.jdk=8 :spring-expression:test --rerun-tasks --continue
-  runtime: OpenJDK 1.8.0_382 (Zulu), Gradle wrapper of the repository
-  report: spring-expression-5.3.39.1-backpatch-00024-tests.zip
-  report_sha256: 4aeeef6dacb1c7b81aa95a9d4cefcc8e9d2c1b7f1ed711bff39b6f57469cac93
+  commit: b585cdbf65370f2781543a3183845a253f8d70db
+  command: none in this repository
+  runtime: none, no build or test ran for this release
+  report: carried, see the evidence of the release named in the note
   result: pass
-  note: the full module suites (spring-expression 821 tests run), 0 failed, 0 errors, 19 skipped, at the tested commit
+  note: "this release is a tooling update, it carries no new fix, nothing ran here; its test provenance is tooling-2026-11-03-spring-framework-5.3: a tooling update of moderne-backpatch-alliance/backpatch-spring-framework at v5.3.39.1-backpatch-00024, whose .backpatch/patch-evidence.yaml says what ran"
