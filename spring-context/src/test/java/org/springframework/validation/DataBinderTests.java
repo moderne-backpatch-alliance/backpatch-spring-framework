@@ -741,6 +741,43 @@ class DataBinderTests {
 	}
 
 	@Test
+	void disallowedFieldMatchIndependentOfDefaultLocale() throws BindException {
+		Locale defaultLocale = Locale.getDefault();
+		Locale.setDefault(new Locale("tr"));
+		try {
+			TestBean rod = new TestBean();
+			DataBinder binder = new DataBinder(rod);
+			binder.setDisallowedFields("JEDI");
+			MutablePropertyValues pvs = new MutablePropertyValues();
+			pvs.add("jedi", "true");
+
+			binder.bind(pvs);
+			binder.close();
+
+			assertThat(rod.isJedi()).as("did not change jedi").isFalse();
+			assertThat(binder.getBindingResult().getSuppressedFields()).containsExactly("jedi");
+		}
+		finally {
+			Locale.setDefault(defaultLocale);
+		}
+	}
+
+	@Test
+	void disallowedFieldMatchWithDottedAndDotlessI() throws BindException {
+		DataBinder binder = new DataBinder(new TestBean());
+		binder.setDisallowedFields("jedi");
+		MutablePropertyValues pvs = new MutablePropertyValues();
+		pvs.add("jed\u0130", "true");
+		pvs.add("jed\u0131", "true");
+
+		binder.bind(pvs);
+		binder.close();
+
+		assertThat(binder.getBindingResult().getSuppressedFields())
+				.containsExactlyInAnyOrder("jed\u0130", "jed\u0131");
+	}
+
+	@Test
 	void bindingWithAllowedFieldsUsingAsterisks() throws BindException {
 		TestBean rod = new TestBean();
 		DataBinder binder = new DataBinder(rod, "person");
