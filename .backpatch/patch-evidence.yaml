@@ -1,6 +1,6 @@
 schema: osera-patch-evidence/0.1.0
 producer: moderne
-release: 5.3.39.1-backpatch-00027
+release: 5.3.39.1-backpatch-00028
 baseline: v5.3.39+backpatch.baseline
 fixes:
   - cve: CVE-2016-1000027
@@ -243,12 +243,20 @@ fixes:
     basis: adapted
     artifacts:
       - org.springframework:spring-expression
-    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00027 (backpatch-spring-framework@17136ed).
+    note: Carried from 5.3.39.1-backpatch-00027; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00027 (backpatch-spring-framework@17136ed).
+  - cve: CVE-2026-41847
+    upstream_fix_url: https://github.com/spring-projects/spring-framework/commit/9d263668d51c4edffed4c867d29064d0a1964e37
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2026-41847
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-spring-framework/commit/9f0709f
+    basis: adapted
+    artifacts:
+      - org.springframework:spring-webflux
+    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00028 (backpatch-spring-framework@9f0709f).
 tests:
-  commit: 17136ed592e68f9c6f8f97a6487b5373e08df8e0
+  commit: 9f0709f598096872e91e774c34bf5f7169daaa6b
   command: gradlew test on spring-core, -context, -expression, -web, -webflux and -webmvc, --continue
   runtime: openjdk version 1.8.0_382, Gradle wrapper
-  report: spring-expression-5.3.39.1-backpatch-00027-tests.zip
-  report_sha256: ba7283ec22b178157a4c90bcb8779bdf840beed27193db2ea5d007af9ea5ce51
+  report: spring-webflux-5.3.39.1-backpatch-00028-tests.zip
+  report_sha256: a9e1fdcfe0d98e3a9e34e6db9c1aa9d501a8803c8c8d48c4b7364c3e74c54ae9
   result: pass
-  note: 15107 tests at the patch commit, 90 of them skipped by the suite, 0 failed, 0 errors.
+  note: 15108 tests at the patch commit, 90 of them skipped by the suite, 0 failed, 0 errors.
