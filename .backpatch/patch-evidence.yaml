@@ -1,6 +1,6 @@
 schema: osera-patch-evidence/0.1.0
 producer: moderne
-release: 5.3.39.1-backpatch-00029
+release: 5.3.39.1-backpatch-00030
 baseline: v5.3.39+backpatch.baseline
 fixes:
   - cve: CVE-2016-1000027
@@ -259,12 +259,21 @@ fixes:
     basis: adapted
     artifacts:
       - org.springframework:spring-core
-    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00029 (backpatch-spring-framework@eb01537).
+    note: Carried from 5.3.39.1-backpatch-00029; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00029 (backpatch-spring-framework@eb01537).
+  - cve: CVE-2026-22741
+    upstream_fix_url: https://github.com/spring-projects/spring-framework/commit/e607f1c30fd99e146cdaf186c56d1f1275e3fbc1
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2026-22741
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-spring-framework/commit/f540bcd
+    basis: adapted
+    artifacts:
+      - org.springframework:spring-webflux
+      - org.springframework:spring-webmvc
+    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00030 (backpatch-spring-framework@f540bcd).
 tests:
-  commit: eb01537eb33769507e156552464ce74f4d4d3767
+  commit: f540bcd672f5f006270d9759a28290d77192ca44
   command: gradlew test on spring-core, -context, -expression, -web, -webflux and -webmvc, --continue
   runtime: Temurin 8 (Linux aarch64, devpod m9g.2xlarge), Gradle 7.5.1
-  report: spring-core-5.3.39.1-backpatch-00029-tests.zip
-  report_sha256: 1aad6f4e041da24492b298dff16f4dd24ea5513f5578a54b3252baf6a238e738
+  report: spring-webflux-5.3.39.1-backpatch-00030-tests.zip
+  report_sha256: 96216cb25e982eb0cb6051bd06228c292d63d917fdbe5d65da0c5752c3778d65
   result: pass
-  note: 15110 tests at the patch commit, 90 of them skipped by the suite, 0 failed, 0 errors. The suite ran on 2026-11-17 on a devpod (Temurin 8, Linux aarch64, Gradle build cache off), not on the Mac, at a source commit whose tree equals this patch commit outside .backpatch; the Mac failed embedded-server webflux tests on random localhost ports, baseline included, and the devpod baseline was green.
+  note: 15112 tests at the patch commit, 90 of them skipped by the suite, 0 failed, 0 errors. The suite ran on 2026-11-17 on a devpod (Temurin 8, Linux aarch64, Gradle build cache off), not on the Mac, at a source commit whose tree equals this patch commit outside .backpatch; the Mac failed embedded-server webflux tests on random localhost ports, baseline included, and the devpod baseline was green.
