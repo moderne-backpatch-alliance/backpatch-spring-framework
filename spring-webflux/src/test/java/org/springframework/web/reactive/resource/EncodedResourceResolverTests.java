@@ -93,6 +93,24 @@ public class EncodedResourceResolverTests {
 	}
 
 	@Test
+	public void acceptedCodingMatchedAsWholeToken(GzippedFiles gzippedFiles) {
+		String file = "js/foo.js";
+		gzippedFiles.create(file);
+		MockServerWebExchange exchange = MockServerWebExchange.from(
+				MockServerHttpRequest.get("").header("Accept-Encoding", "notgzip"));
+		Resource actual = this.resolver.resolveResource(exchange, file, this.locations).block(TIMEOUT);
+
+		assertThat(actual).isNotInstanceOf(HttpResource.class);
+		assertThat(actual.getDescription()).isEqualTo(getResource(file).getDescription());
+
+		exchange = MockServerWebExchange.from(MockServerHttpRequest.get(""));
+		actual = this.resolver.resolveResource(exchange, file, this.locations).block(TIMEOUT);
+
+		assertThat(actual).isNotInstanceOf(HttpResource.class);
+		assertThat(actual.getDescription()).isEqualTo(getResource(file).getDescription());
+	}
+
+	@Test
 	public void resolveGzippedWithVersion(GzippedFiles gzippedFiles) {
 
 		MockServerWebExchange exchange = MockServerWebExchange.from(
