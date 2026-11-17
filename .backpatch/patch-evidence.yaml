@@ -1,6 +1,6 @@
 schema: osera-patch-evidence/0.1.0
 producer: moderne
-release: 5.3.39.1-backpatch-00026
+release: 5.3.39.1-backpatch-00027
 baseline: v5.3.39+backpatch.baseline
 fixes:
   - cve: CVE-2016-1000027
@@ -236,10 +236,19 @@ fixes:
     artifacts:
       - org.springframework:spring-expression
     note: Carried from 5.3.39.1-backpatch-00024; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00024 (backpatch-spring-framework@a48343e).
+  - cve: CVE-2026-41852
+    upstream_fix_url: https://github.com/spring-projects/spring-framework/commit/3d47da9746d54775a282717b539924f9e6e39096
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2026-41852
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-spring-framework/commit/17136ed
+    basis: adapted
+    artifacts:
+      - org.springframework:spring-expression
+    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00027 (backpatch-spring-framework@17136ed).
 tests:
-  commit: e3363aa62d759126f1840c974ac34b9092a025a7
-  command: none in this repository
-  runtime: none, no build or test ran for this release
-  report: carried, see the evidence of the release named in the note
+  commit: 17136ed592e68f9c6f8f97a6487b5373e08df8e0
+  command: gradlew test on spring-core, -context, -expression, -web, -webflux and -webmvc, --continue
+  runtime: openjdk version 1.8.0_382, Gradle wrapper
+  report: spring-expression-5.3.39.1-backpatch-00027-tests.zip
+  report_sha256: ba7283ec22b178157a4c90bcb8779bdf840beed27193db2ea5d007af9ea5ce51
   result: pass
-  note: "this release is a tooling update, it carries no new fix, nothing ran here; its test provenance is tooling-2026-11-12-spring-framework-5.3: a tooling update of moderne-backpatch-alliance/backpatch-spring-framework at v5.3.39.1-backpatch-00025, whose .backpatch/patch-evidence.yaml says what ran"
+  note: 15107 tests at the patch commit, 90 of them skipped by the suite, 0 failed, 0 errors.
