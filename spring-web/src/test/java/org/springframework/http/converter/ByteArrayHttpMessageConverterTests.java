@@ -26,6 +26,7 @@ import org.springframework.http.MockHttpInputMessage;
 import org.springframework.http.MockHttpOutputMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 /** @author Arjen Poutsma */
 public class ByteArrayHttpMessageConverterTests {
@@ -55,6 +56,23 @@ public class ByteArrayHttpMessageConverterTests {
 		inputMessage.getHeaders().setContentType(new MediaType("application", "octet-stream"));
 		byte[] result = converter.read(byte[].class, inputMessage);
 		assertThat(result).as("Invalid result").isEqualTo(body);
+	}
+
+	@Test
+	public void readDoesNotAllocateFromDeclaredContentLength() {
+		byte[] body = new byte[]{0x1, 0x2};
+		MockHttpInputMessage inputMessage = new MockHttpInputMessage(body);
+		inputMessage.getHeaders().setContentLength(Integer.MAX_VALUE);
+		assertThatCode(() -> assertThat(converter.read(byte[].class, inputMessage)).isEqualTo(body))
+				.doesNotThrowAnyException();
+	}
+
+	@Test
+	public void readWithContentLengthBeyondIntRange() throws IOException {
+		byte[] body = new byte[]{0x1, 0x2};
+		MockHttpInputMessage inputMessage = new MockHttpInputMessage(body);
+		inputMessage.getHeaders().setContentLength(3_000_000_000L);
+		assertThat(converter.read(byte[].class, inputMessage)).isEqualTo(body);
 	}
 
 	@Test
