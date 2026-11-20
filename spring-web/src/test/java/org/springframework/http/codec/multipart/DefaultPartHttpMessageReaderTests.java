@@ -24,12 +24,17 @@ import java.lang.annotation.Target;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 import io.netty.buffer.PooledByteBufAllocator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -38,6 +43,8 @@ import reactor.core.Exceptions;
 import reactor.core.publisher.BaseSubscriber;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
+import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
 import org.springframework.core.codec.DecodingException;
@@ -45,8 +52,10 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
+import org.springframework.core.io.buffer.DataBufferLimitException;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.core.io.buffer.NettyDataBufferFactory;
+import org.springframework.core.testfixture.io.buffer.AbstractLeakCheckingTests;
 import org.springframework.http.MediaType;
 import org.springframework.lang.Nullable;
 import org.springframework.web.testfixture.http.server.reactive.MockServerHttpRequest;
@@ -61,9 +70,12 @@ import static org.springframework.core.ResolvableType.forClass;
 import static org.springframework.core.io.buffer.DataBufferUtils.release;
 
 /**
+ * Tests for {@link DefaultPartHttpMessageReader}.
+ *
  * @author Arjen Poutsma
+ * @author Brian Clozel
  */
-class DefaultPartHttpMessageReaderTests  {
+class DefaultPartHttpMessageReaderTests extends AbstractLeakCheckingTests {
 
 	private static final String LOREM_IPSUM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer iaculis metus id vestibulum nullam.";
 
@@ -71,7 +83,8 @@ class DefaultPartHttpMessageReaderTests  {
 
 	private static final int BUFFER_SIZE = 64;
 
-	private static final DataBufferFactory bufferFactory = new NettyDataBufferFactory(new PooledByteBufAllocator());
+	// 5.3's NettyDataBufferFactory.join refuses the leak-aware wrapper when headers span buffers
+	private static final DataBufferFactory unwrappedBufferFactory = new NettyDataBufferFactory(new PooledByteBufAllocator());
 
 	@ParameterizedDefaultPartHttpMessageReaderTest
 	void canRead(DefaultPartHttpMessageReader reader) {
@@ -162,7 +175,7 @@ class DefaultPartHttpMessageReaderTests  {
 				new ClassPathResource("simple.multipart", getClass()), "simple-boundary");
 		Flux<Part> result = reader.read(forClass(Part.class), request, emptyMap());
 
-		StepVerifier.create(result, 1)
+		StepVerifier.create(result)
 				.consumeNextWith(part -> part.content().subscribe(DataBufferUtils::release))
 				.thenCancel()
 				.verify();
@@ -217,8 +230,12 @@ class DefaultPartHttpMessageReaderTests  {
 
 	@Test
 	void tooManyParts() throws InterruptedException {
-		MockServerHttpRequest request = createRequest(
-				new ClassPathResource("simple.multipart", getClass()), "simple-boundary");
+		Flux<DataBuffer> body = DataBufferUtils.readByteChannel(
+				(new ClassPathResource("files.multipart", getClass()))::readableChannel, bufferFactory, 8192);
+		MediaType contentType = new MediaType("multipart", "form-data", singletonMap("boundary", "----WebKitFormBoundaryG8fJ50opQOML0oGD"));
+		MockServerHttpRequest request = MockServerHttpRequest.post("/")
+				.contentType(contentType)
+				.body(body);
 
 		DefaultPartHttpMessageReader reader = new DefaultPartHttpMessageReader();
 		reader.setMaxParts(1);
@@ -227,8 +244,7 @@ class DefaultPartHttpMessageReaderTests  {
 
 		CountDownLatch latch = new CountDownLatch(1);
 		StepVerifier.create(result)
-				.consumeNextWith(part -> testPart(part, null,
-						"This is implicitly typed plain ASCII text.\r\nIt does NOT end with a linebreak.", latch)).as("Part 1")
+				.consumeNextWith(part -> testBrowserFile(part, "file2", "a.txt", LOREM_IPSUM, latch)).as("Part 1")
 				.expectError(DecodingException.class)
 				.verify();
 
@@ -273,7 +289,7 @@ class DefaultPartHttpMessageReaderTests  {
 
 	// gh-27612
 	@Test
-	void exceedHeaderLimit() throws InterruptedException {
+	void largeBufferForHeaderDoesNotExceedLimit() throws InterruptedException {
 		Flux<DataBuffer> body = DataBufferUtils
 				.readByteChannel((new ClassPathResource("files.multipart", getClass()))::readableChannel, bufferFactory, 282);
 
@@ -297,10 +313,89 @@ class DefaultPartHttpMessageReaderTests  {
 		latch.await();
 	}
 
+	@Test
+	void exceedHeaderLimit() {
+		MockServerHttpRequest request = createRequest(
+				new ClassPathResource("files.multipart", getClass()), "\"----WebKitFormBoundaryG8fJ50opQOML0oGD\"");
+
+		DefaultPartHttpMessageReader reader = new DefaultPartHttpMessageReader();
+		reader.setMaxHeadersSize(80);
+		Flux<Part> result = reader.read(forClass(Part.class), request, emptyMap());
+
+		StepVerifier.create(result)
+				.expectError(DataBufferLimitException.class)
+				.verify();
+	}
+
+	@Test
+	void noTokenRequestedWhileCreatingFile(@TempDir Path tempDir) throws Exception {
+		Queue<Runnable> heldTasks = new ConcurrentLinkedQueue<>();
+		AtomicBoolean hold = new AtomicBoolean(true);
+		Scheduler scheduler = Schedulers.fromExecutor(task -> {
+			if (hold.get()) {
+				heldTasks.add(task);
+			}
+			else {
+				task.run();
+			}
+		});
+
+		DefaultPartHttpMessageReader reader = new DefaultPartHttpMessageReader();
+		reader.setMaxInMemorySize(1);
+		reader.setFileStorageDirectory(tempDir);
+		reader.setBlockingOperationScheduler(scheduler);
+
+		String content = String.join("", Collections.nCopies(1024, "a"));
+		Flux<DataBuffer> body = Flux.just(
+				"--b\r\nContent-Disposition: form-data; name=\"f\"; filename=\"f.txt\"\r\n\r\n" + content,
+				content,
+				content + "\r\n--b--\r\n")
+				.map(chunk -> bufferFactory.wrap(chunk.getBytes(UTF_8)));
+		MockServerHttpRequest request = MockServerHttpRequest.post("/")
+				.contentType(new MediaType("multipart", "form-data", singletonMap("boundary", "b")))
+				.body(body);
+
+		AtomicReference<Throwable> error = new AtomicReference<>();
+		CountDownLatch done = new CountDownLatch(1);
+		BaseSubscriber<Part> subscriber = new BaseSubscriber<Part>() {
+			@Override
+			protected void hookOnSubscribe(Subscription subscription) {
+				request(1);
+			}
+			@Override
+			protected void hookOnNext(Part part) {
+				request(1);
+			}
+			@Override
+			protected void hookOnError(Throwable throwable) {
+				error.set(throwable);
+				done.countDown();
+			}
+			@Override
+			protected void hookOnComplete() {
+				done.countDown();
+			}
+		};
+		reader.read(forClass(Part.class), request, emptyMap()).subscribe(subscriber);
+
+		// The part is now creating its file, and more demand must not ask for tokens
+		assertThat(heldTasks).isNotEmpty();
+		subscriber.request(1);
+		assertThat(error.get()).isNull();
+
+		hold.set(false);
+		heldTasks.forEach(Runnable::run);
+		assertThat(done.await(5, TimeUnit.SECONDS)).isTrue();
+		assertThat(error.get()).isNull();
+	}
+
 	private void testBrowser(DefaultPartHttpMessageReader reader, Resource resource, String boundary)
 			throws InterruptedException {
 
-		MockServerHttpRequest request = createRequest(resource, boundary);
+		MediaType contentType = new MediaType("multipart", "form-data", singletonMap("boundary", boundary));
+		MockServerHttpRequest request = MockServerHttpRequest.post("/")
+				.contentType(contentType)
+				.body(DataBufferUtils.readByteChannel(resource::readableChannel, unwrappedBufferFactory, BUFFER_SIZE));
 
 		Flux<Part> result = reader.read(forClass(Part.class), request, emptyMap());
 		CountDownLatch latch = new CountDownLatch(3);
