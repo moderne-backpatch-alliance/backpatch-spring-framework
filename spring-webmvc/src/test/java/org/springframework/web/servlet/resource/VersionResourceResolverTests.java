@@ -78,6 +78,21 @@ public class VersionResourceResolverTests {
 	}
 
 	@Test
+	public void resolveResourceRefusesInvalidPathAfterVersionRemoved() throws Exception {
+		VersionStrategy strategy = new ContentVersionStrategy();
+		String versionFile = "css/.-version./bar";
+		String file = "css/../bar";
+		assertThat(strategy.extractVersion(versionFile)).isEqualTo("version");
+		assertThat(strategy.removeVersion(versionFile, "version")).isEqualTo(file);
+		given(this.chain.resolveResource(null, versionFile, this.locations)).willReturn(null);
+
+		this.resolver.setStrategyMap(Collections.singletonMap("/**", strategy));
+		Resource actual = this.resolver.resolveResourceInternal(null, versionFile, this.locations, this.chain);
+		assertThat((Object) actual).isNull();
+		verify(this.chain, never()).resolveResource(null, file, this.locations);
+	}
+
+	@Test
 	public void resolveResourceNoVersionStrategy() throws Exception {
 		String file = "missing.css";
 		given(this.chain.resolveResource(null, file, this.locations)).willReturn(null);
