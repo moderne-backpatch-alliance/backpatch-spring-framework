@@ -20,6 +20,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Test;
@@ -39,6 +40,41 @@ public class InMemoryWebSessionStoreTests {
 
 	private InMemoryWebSessionStore store = new InMemoryWebSessionStore();
 
+
+	@Test
+	public void saveDoesNotRestoreIdFromConcurrentChangeSessionId() {
+		WebSession session = this.store.createWebSession().block();
+		assertThat(session).isNotNull();
+		session.start();
+		String oldId = session.getId();
+
+		// Runs changeSessionId right after save has read the session id
+		new DirectFieldAccessor(this.store).setPropertyValue("sessions", new ConcurrentHashMap<String, Object>() {
+			private boolean changed;
+			@Override
+			public Object get(Object key) {
+				Object value = super.get(key);
+				changeOnce();
+				return value;
+			}
+			@Override
+			public Object put(String key, Object value) {
+				changeOnce();
+				return super.put(key, value);
+			}
+			private void changeOnce() {
+				if (!this.changed) {
+					this.changed = true;
+					session.changeSessionId().block();
+				}
+			}
+		});
+
+		session.save().block();
+
+		assertThat(session.getId()).isNotEqualTo(oldId);
+		assertThat(this.store.getSessions()).containsOnlyKeys(session.getId());
+	}
 
 	@Test
 	public void startsSessionExplicitly() {
