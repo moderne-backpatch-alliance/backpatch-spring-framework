@@ -63,6 +63,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -392,6 +393,34 @@ public class StompSubProtocolHandlerTests {
 		WebSocketMessage<?> textMessage = this.session.getSentMessages().get(0);
 		assertThat(textMessage.getPayload())
 				.isEqualTo("CONNECTED\n" + "user-name:__pete__@gmail.com\n" + "\n" + "\u0000");
+	}
+
+	@Test
+	public void handleMessageFromClientWithoutConnect() {
+		TextMessage textMessage = StompTextMessageBuilder.create(StompCommand.SEND)
+				.headers("destination:/foo").build();
+
+		this.protocolHandler.afterSessionStarted(this.session, this.channel);
+		this.protocolHandler.handleMessageFromClient(this.session, textMessage, this.channel);
+
+		verify(this.channel, never()).send(any());
+		assertThat(this.session.getSentMessages()).hasSize(1);
+		TextMessage actual = (TextMessage) this.session.getSentMessages().get(0);
+		assertThat(actual.getPayload()).startsWith("ERROR");
+	}
+
+	@Test
+	public void handleMessageFromClientWithSecondConnect() {
+		TextMessage textMessage = StompTextMessageBuilder.create(StompCommand.CONNECT).build();
+
+		this.protocolHandler.afterSessionStarted(this.session, this.channel);
+		this.protocolHandler.handleMessageFromClient(this.session, textMessage, this.channel);
+		this.protocolHandler.handleMessageFromClient(this.session, textMessage, this.channel);
+
+		verify(this.channel, times(1)).send(any());
+		assertThat(this.session.getSentMessages()).hasSize(1);
+		TextMessage actual = (TextMessage) this.session.getSentMessages().get(0);
+		assertThat(actual.getPayload()).startsWith("ERROR");
 	}
 
 	@Test
