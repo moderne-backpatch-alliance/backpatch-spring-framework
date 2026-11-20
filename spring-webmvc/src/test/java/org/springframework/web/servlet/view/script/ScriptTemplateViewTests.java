@@ -91,6 +91,30 @@ public class ScriptTemplateViewTests {
 	}
 
 	@Test
+	public void templateOutsideResourceLoaderPathIsNotFound() throws Exception {
+		this.wac.setServletContext(new MockServletContext());
+		this.wac.refresh();
+		this.view.setResourceLoaderPath("classpath:org/springframework/web/servlet/view/script/jython/");
+		this.view.setUrl("../empty.txt");
+		this.view.setEngine(mock(InvocableScriptEngine.class));
+		this.configurer.setRenderFunction("render");
+		this.view.setApplicationContext(this.wac);
+		assertThat(this.view.checkResource(Locale.ENGLISH)).isFalse();
+	}
+
+	@Test
+	public void templateUnderResourceLoaderPathIsFound() throws Exception {
+		this.wac.setServletContext(new MockServletContext());
+		this.wac.refresh();
+		this.view.setResourceLoaderPath("classpath:org/springframework/web/servlet/view/script/");
+		this.view.setUrl("empty.txt");
+		this.view.setEngine(mock(InvocableScriptEngine.class));
+		this.configurer.setRenderFunction("render");
+		this.view.setApplicationContext(this.wac);
+		assertThat(this.view.checkResource(Locale.ENGLISH)).isTrue();
+	}
+
+	@Test
 	public void missingScriptTemplateConfig() {
 		assertThatExceptionOfType(ApplicationContextException.class).isThrownBy(() ->
 				this.view.setApplicationContext(new StaticApplicationContext()))
