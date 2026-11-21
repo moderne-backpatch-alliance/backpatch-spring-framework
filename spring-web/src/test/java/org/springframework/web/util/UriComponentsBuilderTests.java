@@ -214,6 +214,22 @@ public class UriComponentsBuilderTests {
 		UriComponentsBuilder.fromHttpUrl("http://[1abc:2abc:3abc::5ABC:6abc:8080/resource").build().encode();
 	}
 
+	@Test  // gh-32211
+	public void fromUriStringUserInfoWithOpeningBracket() {
+		UriComponents result = UriComponentsBuilder.fromUriString("https://us[er@example.com/path").build();
+		assertEquals("us[er", result.getUserInfo());
+		assertEquals("example.com", result.getHost());
+		assertEquals("/path", result.getPath());
+	}
+
+	@Test  // gh-32211
+	public void fromHttpUrlUserInfoWithOpeningBracket() {
+		UriComponents result = UriComponentsBuilder.fromHttpUrl("https://us[er@example.com/path").build();
+		assertEquals("us[er", result.getUserInfo());
+		assertEquals("example.com", result.getHost());
+		assertEquals("/path", result.getPath());
+	}
+
 	@Test  // SPR-10539
 	public void fromUriStringIPv6Host() {
 		UriComponents result = UriComponentsBuilder
