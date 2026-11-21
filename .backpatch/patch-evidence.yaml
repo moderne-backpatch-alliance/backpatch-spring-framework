@@ -1,0 +1,21 @@
+schema: osera-patch-evidence/0.1.0
+producer: moderne
+release: 5.2.25.RELEASE-backpatch-00001
+baseline: v5.2.25.RELEASE+backpatch.baseline
+fixes:
+  - cve: CVE-2024-38809
+    upstream_fix_url: https://github.com/spring-projects/spring-framework/commit/582bfccbb72e5c8959a0b472d1dc7d03a20520f3
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2024-38809
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-spring-framework/commit/9105098
+    basis: adapted
+    artifacts:
+      - org.springframework:spring-web
+    note: New in this release; ported onto 5.2.25.RELEASE; fixed at 5.2.25.RELEASE-backpatch-00001 (backpatch-spring-framework@9105098).
+tests:
+  commit: 9105098e5664b87d2dba6888d240167c6193427c
+  command: ./gradlew --no-daemon :spring-web:test --continue (Gradle 5.6.4 wrapper of the repository; the report decides)
+  runtime: OpenJDK 1.8.0_382 (Zulu), Gradle wrapper of the repository
+  report: spring-web-5.2.25.RELEASE-backpatch-00001-tests.zip
+  report_sha256: 56fc5299aeb853c180fef6128dcefe3eff36eedd48daf27bde55755aef202e28
+  result: pass
+  note: 2356 tests at the patch commit, 14 of them skipped by the suite, 0 failed, 0 errors.
