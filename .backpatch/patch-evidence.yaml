@@ -1,6 +1,6 @@
 schema: osera-patch-evidence/0.1.0
 producer: moderne
-release: 5.3.39.1-backpatch-00038
+release: 5.3.39.1-backpatch-00039
 baseline: v5.3.39+backpatch.baseline
 fixes:
   - cve: CVE-2016-1000027
@@ -346,12 +346,20 @@ fixes:
     basis: adapted
     artifacts:
       - org.springframework:spring-web
-    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00038 (backpatch-spring-framework@fc9d0a5).
+    note: Carried from 5.3.39.1-backpatch-00038; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00038 (backpatch-spring-framework@fc9d0a5).
+  - cve: CVE-2024-38828
+    upstream_fix_url: https://github.com/spring-projects/spring-framework/commit/fa1f7f6dc7b86d0588dbf90ce9d255de109d0f10
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2024-38828
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-spring-framework/commit/25cf77a
+    basis: adapted
+    artifacts:
+      - org.springframework:spring-web
+    note: "New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00039 (backpatch-spring-framework@25cf77a). No upstream commit is named for this CVE on 5.3. The fix ported here is upstream commit fa1f7f6dc7, matched by elimination: a refactor that stops ByteArrayHttpMessageConverter from sizing its read buffer from the Content-Length header. Only its ByteArrayHttpMessageConverter change is ported."
 tests:
-  commit: fc9d0a56c93d05fec79f59bdfb869bcaa0c0da9f
+  commit: 25cf77ae1ec1e957a3bd83dc7f1c688bd97edff6
   command: gradlew test on spring-core, -context, -expression, -web, -webflux, -webmvc and -websocket, --continue
   runtime: Temurin 8 (Linux aarch64, Docker eclipse-temurin:8-jdk on the Mac), Gradle 7.5.1
-  report: spring-web-5.3.39.1-backpatch-00038-tests.zip
-  report_sha256: fdf34edc8661d9f1bd981c1d659751744786cda42d4a5d68682032e79369a2ec
+  report: spring-web-5.3.39.1-backpatch-00039-tests.zip
+  report_sha256: 7750c167a69b7a81c8512b67142d467b42c181e9889ea8c3f9bfe0d09b7283ac
   result: pass
-  note: 15510 tests at the patch commit, 110 of them skipped by the suite, 0 failed, 0 errors. The suite ran on 2026-11-20 in an eclipse-temurin:8-jdk container (Linux aarch64) on the Mac, Gradle build cache off, not on the Mac host, at a source commit whose tree equals this patch commit outside .backpatch; the Mac host fails embedded-server webflux tests on random localhost ports, baseline included; the same container run at the released 00032 commit gave the devpod's results, module for module.
+  note: 15512 tests at the patch commit, 110 of them skipped by the suite, 0 failed, 0 errors. The suite ran on 2026-11-20 in an eclipse-temurin:8-jdk container (Linux aarch64) on the Mac, Gradle build cache off, not on the Mac host, at a source commit whose tree equals this patch commit outside .backpatch; the Mac host fails embedded-server webflux tests on random localhost ports, baseline included; the same container run at the released 00032 commit gave the devpod's results, module for module.
