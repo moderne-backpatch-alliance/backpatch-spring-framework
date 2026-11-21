@@ -1,6 +1,6 @@
 schema: osera-patch-evidence/0.1.0
 producer: moderne
-release: 5.1.20.RELEASE-backpatch-00002
+release: 5.1.20.RELEASE-backpatch-00003
 baseline: v5.1.20.RELEASE+backpatch.baseline
 fixes:
   - cve: CVE-2022-22965
@@ -18,12 +18,20 @@ fixes:
     basis: adapted
     artifacts:
       - org.springframework:spring-web
-    note: New in this release; ported onto 5.1.20.RELEASE; fixed at 5.1.20.RELEASE-backpatch-00002 (backpatch-spring-framework@109eb1b).
+    note: Carried from 5.1.20.RELEASE-backpatch-00002; ported onto 5.1.20.RELEASE; fixed at 5.1.20.RELEASE-backpatch-00002 (backpatch-spring-framework@109eb1b).
+  - cve: CVE-2024-38809
+    upstream_fix_url: https://github.com/spring-projects/spring-framework/commit/582bfccbb72e5c8959a0b472d1dc7d03a20520f3
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2024-38809
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-spring-framework/commit/00397e4
+    basis: adapted
+    artifacts:
+      - org.springframework:spring-web
+    note: New in this release; ported onto 5.1.20.RELEASE; fixed at 5.1.20.RELEASE-backpatch-00003 (backpatch-spring-framework@00397e4).
 tests:
-  commit: 109eb1bdb0110228c65df54d9a9d5752f99c4201
+  commit: 00397e46dcfe8e2be15e6eb73a1d28b6b4cd1b3a
   command: ./gradlew --no-daemon -I spring-5.1-init.gradle :spring-beans:test :spring-web:test --continue (Gradle 4.10.3; the report decides)
   runtime: OpenJDK 1.8.0_382 (Zulu), Gradle wrapper of the repository
-  report: spring-web-5.1.20.RELEASE-backpatch-00002-tests.zip
-  report_sha256: 787d15b6f54414bfaf113210680ea9a11ccfcf6b2098134e84de4187fa503609
+  report: spring-web-5.1.20.RELEASE-backpatch-00003-tests.zip
+  report_sha256: 8d484bda2824ec099300a4a9ebd4650ba090b8fe02ce4fc5095ab2f45f9065b5
   result: pass
-  note: 3654 tests at the patch commit, 43 of them skipped by the suite, 0 failed, 0 errors.
+  note: 3658 tests at the patch commit, 43 of them skipped by the suite, 0 failed, 0 errors.
