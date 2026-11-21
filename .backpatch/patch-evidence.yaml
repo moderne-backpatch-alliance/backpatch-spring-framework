@@ -1,6 +1,6 @@
 schema: osera-patch-evidence/0.1.0
 producer: moderne
-release: 5.3.39.1-backpatch-00032
+release: 5.3.39.1-backpatch-00033
 baseline: v5.3.39+backpatch.baseline
 fixes:
   - cve: CVE-2016-1000027
@@ -286,7 +286,7 @@ fixes:
     artifacts:
       - org.springframework:spring-context
       - org.springframework:spring-core
-    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00032 (backpatch-spring-framework@9848fc8).
+    note: Carried from 5.3.39.1-backpatch-00032; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00032 (backpatch-spring-framework@9848fc8).
   - cve: CVE-2024-38820
     upstream_fix_url: https://github.com/spring-projects/spring-framework/commit/23656aebc6c7d0f9faff1080981eb4d55eff296c
     advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2024-38820
@@ -295,12 +295,21 @@ fixes:
     artifacts:
       - org.springframework:spring-context
       - org.springframework:spring-core
-    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00032 (backpatch-spring-framework@9848fc8).
+    note: Carried from 5.3.39.1-backpatch-00032; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00032 (backpatch-spring-framework@9848fc8).
+  - cve: CVE-2025-41242
+    upstream_fix_url: https://github.com/spring-projects/spring-framework/commit/24e66b63d1d12c45e4af333d6271451083f81e90
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2025-41242
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-spring-framework/commit/d76e84e
+    basis: adapted
+    artifacts:
+      - org.springframework:spring-core
+      - org.springframework:spring-web
+    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00033 (backpatch-spring-framework@d76e84e).
 tests:
-  commit: 9848fc85555706a0c86b2af0304a3699ff0171ae
-  command: gradlew test on spring-core, -context, -expression, -web, -webflux and -webmvc, --continue
-  runtime: Temurin 8 (Linux aarch64, devpod m9g.2xlarge), Gradle 7.5.1
-  report: spring-context-5.3.39.1-backpatch-00032-tests.zip
-  report_sha256: e3d481e530eca4156a5c464845dc2bf058b1d405da7a8679fad0074692820b5b
+  commit: d76e84e0d51038d6202c3e2928446315f3c9282d
+  command: gradlew test on spring-core, -context, -expression, -web, -webflux, -webmvc and -websocket, --continue
+  runtime: Temurin 8 (Linux aarch64, Docker eclipse-temurin:8-jdk on the Mac), Gradle 7.5.1
+  report: spring-core-5.3.39.1-backpatch-00033-tests.zip
+  report_sha256: 853df652b19eb9eabfef29c57cf97cb6e4b9af9aa2412ad84f155bb4cb558a4f
   result: pass
-  note: 15117 tests at the patch commit, 90 of them skipped by the suite, 0 failed, 0 errors. The suite ran on 2026-11-17 on a devpod (Temurin 8, Linux aarch64, Gradle build cache off), not on the Mac, at a source commit whose tree equals this patch commit outside .backpatch; the Mac failed embedded-server webflux tests on random localhost ports, baseline included, and the devpod baseline was green.
+  note: 15499 tests at the patch commit, 110 of them skipped by the suite, 0 failed, 0 errors. The suite ran on 2026-11-20 in an eclipse-temurin:8-jdk container (Linux aarch64) on the Mac, Gradle build cache off, not on the Mac host, at a source commit whose tree equals this patch commit outside .backpatch; the Mac host fails embedded-server webflux tests on random localhost ports, baseline included; the same container run at the released 00032 commit gave the devpod's results, module for module.
