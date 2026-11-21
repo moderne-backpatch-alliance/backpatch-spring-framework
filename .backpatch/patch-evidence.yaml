@@ -1,6 +1,6 @@
 schema: osera-patch-evidence/0.1.0
 producer: moderne
-release: 5.3.39.1-backpatch-00039
+release: 5.3.39.1-backpatch-00040
 baseline: v5.3.39+backpatch.baseline
 fixes:
   - cve: CVE-2016-1000027
@@ -354,12 +354,20 @@ fixes:
     basis: adapted
     artifacts:
       - org.springframework:spring-web
-    note: "New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00039 (backpatch-spring-framework@25cf77a). No upstream commit is named for this CVE on 5.3. The fix ported here is upstream commit fa1f7f6dc7, matched by elimination: a refactor that stops ByteArrayHttpMessageConverter from sizing its read buffer from the Content-Length header. Only its ByteArrayHttpMessageConverter change is ported."
+    note: "Carried from 5.3.39.1-backpatch-00039; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00039 (backpatch-spring-framework@25cf77a). No upstream commit is named for this CVE on 5.3. The fix ported here is upstream commit fa1f7f6dc7, matched by elimination: a refactor that stops ByteArrayHttpMessageConverter from sizing its read buffer from the Content-Length header. Only its ByteArrayHttpMessageConverter change is ported."
+  - cve: CVE-2026-41853
+    upstream_fix_url: https://github.com/advisories/GHSA-cjpg-rgq5-fr37
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2026-41853
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-spring-framework/commit/5bf6b0f
+    basis: adapted
+    artifacts:
+      - org.springframework:spring-core
+    note: New in this release; ported onto 5.3.39; fixed at 5.3.39.1-backpatch-00040 (backpatch-spring-framework@5bf6b0f).
 tests:
-  commit: 25cf77ae1ec1e957a3bd83dc7f1c688bd97edff6
+  commit: 5bf6b0fa6346519b287fabe1ffc6cdbeed6ebec5
   command: gradlew test on spring-core, -context, -expression, -web, -webflux, -webmvc and -websocket, --continue
   runtime: Temurin 8 (Linux aarch64, Docker eclipse-temurin:8-jdk on the Mac), Gradle 7.5.1
-  report: spring-web-5.3.39.1-backpatch-00039-tests.zip
-  report_sha256: 7750c167a69b7a81c8512b67142d467b42c181e9889ea8c3f9bfe0d09b7283ac
+  report: spring-core-5.3.39.1-backpatch-00040-tests.zip
+  report_sha256: c0af3243026951efe2358a69d4a17819a1640aa82a77cf8cd6e11be5962682b7
   result: pass
-  note: 15512 tests at the patch commit, 110 of them skipped by the suite, 0 failed, 0 errors. The suite ran on 2026-11-20 in an eclipse-temurin:8-jdk container (Linux aarch64) on the Mac, Gradle build cache off, not on the Mac host, at a source commit whose tree equals this patch commit outside .backpatch; the Mac host fails embedded-server webflux tests on random localhost ports, baseline included; the same container run at the released 00032 commit gave the devpod's results, module for module.
+  note: 15515 tests at the patch commit, 110 of them skipped by the suite, 0 failed, 0 errors. The suite ran on 2026-11-20 in an eclipse-temurin:8-jdk container (Linux aarch64) on the Mac, Gradle build cache off, not on the Mac host, at a source commit whose tree equals this patch commit outside .backpatch; the Mac host fails embedded-server webflux tests on random localhost ports, baseline included; the same container run at the released 00032 commit gave the devpod's results, module for module.
