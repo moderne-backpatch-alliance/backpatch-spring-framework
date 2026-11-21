@@ -1,0 +1,21 @@
+schema: osera-patch-evidence/0.1.0
+producer: moderne
+release: 5.1.20.RELEASE-backpatch-00001
+baseline: v5.1.20.RELEASE+backpatch.baseline
+fixes:
+  - cve: CVE-2022-22965
+    upstream_fix_url: https://github.com/advisories/GHSA-36p3-wjmg-h94x
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2022-22965
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-spring-framework/compare/2c16654~1...2085151
+    basis: adapted
+    artifacts:
+      - org.springframework:spring-beans
+    note: New in this release; ported onto 5.1.20.RELEASE; fixed at 5.1.20.RELEASE-backpatch-00001 (backpatch-spring-framework@2c16654..2085151).
+tests:
+  commit: 2085151c02d314d4c701c127798e24b7d096caf7
+  command: ./gradlew --no-daemon -I spring-5.1-init.gradle :spring-beans:test :spring-web:test --continue (Gradle 4.10.3; the report decides)
+  runtime: OpenJDK 1.8.0_382 (Zulu), Gradle wrapper of the repository
+  report: spring-beans-5.1.20.RELEASE-backpatch-00001-tests.zip
+  report_sha256: b8844d5d2e4b5ff7931833ccc1cce04eb358bbcd318c8cca5bfb7e3ef6d2037a
+  result: pass
+  note: 3652 tests at the patch commit, 43 of them skipped by the suite, 0 failed, 0 errors.
