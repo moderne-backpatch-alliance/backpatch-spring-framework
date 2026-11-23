@@ -281,6 +281,27 @@ public class DefaultSubscriptionRegistryTests {
 		assertEquals(0, actual.size());
 	}
 
+	@Test
+	public void registerSubscriptionWithSelectorNotSupportingTypeOrMethodReferences() throws Exception {
+		String destination = "/foo";
+		this.registry.registerSubscription(subscribeMessage("sess01", "subs01", destination,
+				"T(java.lang.Runtime) != null"));
+		this.registry.registerSubscription(subscribeMessage("sess01", "subs02", destination,
+				"headers.foo.equals('bar')"));
+		this.registry.registerSubscription(subscribeMessage("sess01", "subs03", destination,
+				"headers.foo == 'bar'"));
+
+		SimpMessageHeaderAccessor accessor = SimpMessageHeaderAccessor.create();
+		accessor.setDestination(destination);
+		accessor.setNativeHeader("foo", "bar");
+		Message<?> message = MessageBuilder.createMessage("", accessor.getMessageHeaders());
+
+		MultiValueMap<String, String> actual = this.registry.findSubscriptions(message);
+		assertNotNull(actual);
+		assertEquals(1, actual.size());
+		assertEquals(Collections.singletonList("subs03"), actual.get("sess01"));
+	}
+
 	@Test  // SPR-11931
 	public void registerSubscriptionTwiceAndUnregister() {
 		this.registry.registerSubscription(subscribeMessage("sess01", "subs01", "/foo"));
