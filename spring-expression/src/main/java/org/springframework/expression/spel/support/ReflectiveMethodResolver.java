@@ -20,7 +20,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -80,6 +79,12 @@ public class ReflectiveMethodResolver implements MethodResolver {
 	}
 
 
+	/**
+	 * Register a filter for methods on the given type.
+	 * @param type the type to filter on
+	 * @param filter the corresponding method filter,
+	 * or {@code null} to clear any filter for the given type
+	 */
 	public void registerMethodFilter(Class<?> type, MethodFilter filter) {
 		if (this.filters == null) {
 			this.filters = new HashMap<Class<?>, MethodFilter>();
@@ -91,7 +96,6 @@ public class ReflectiveMethodResolver implements MethodResolver {
 			this.filters.remove(type);
 		}
 	}
-
 
 	/**
 	 * Locate a method on a type. There are three kinds of match that might occur:
@@ -218,7 +222,7 @@ public class ReflectiveMethodResolver implements MethodResolver {
 		}
 	}
 
-	private Collection<Method> getMethods(Class<?> type, Object targetObject) {
+	private Set<Method> getMethods(Class<?> type, Object targetObject) {
 		if (targetObject instanceof Class) {
 			Set<Method> result = new LinkedHashSet<Method>();
 			// Add these so that static methods are invocable on the type: e.g. Float.valueOf(..)
@@ -233,7 +237,14 @@ public class ReflectiveMethodResolver implements MethodResolver {
 			return result;
 		}
 		else {
-			return Arrays.asList(getMethods(type));
+			Set<Method> result = new LinkedHashSet<Method>();
+			Method[] methods = getMethods(type);
+			for (Method method : methods) {
+				if (isCandidateForInvocation(method, type)) {
+					result.add(method);
+				}
+			}
+			return result;
 		}
 	}
 
@@ -247,6 +258,19 @@ public class ReflectiveMethodResolver implements MethodResolver {
 	 */
 	protected Method[] getMethods(Class<?> type) {
 		return type.getMethods();
+	}
+
+	/**
+	 * Determine whether the given {@code Method} is a candidate for method resolution
+	 * on an instance of the given target class.
+	 * <p>The default implementation considers any method as a candidate, even for
+	 * static methods sand non-user-declared methods on the {@link Object} base class.
+	 * @param method the Method to evaluate
+	 * @param targetClass the concrete target class that is being introspected
+	 * @since 4.3.15
+	 */
+	protected boolean isCandidateForInvocation(Method method, Class<?> targetClass) {
+		return true;
 	}
 
 }
