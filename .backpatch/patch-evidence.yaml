@@ -1,0 +1,22 @@
+schema: osera-patch-evidence/0.1.0
+producer: moderne
+release: 4.2.9.RELEASE-backpatch-00001
+baseline: v4.2.9.RELEASE+backpatch.baseline
+fixes:
+  - cve: CVE-2018-1270
+    upstream_fix_url: https://github.com/spring-projects/spring-framework/commit/4bc3e0c2b4c703b3da90774e948f8adb18f334f9
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2018-1270
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-spring-framework/compare/091f16e~1...87e6a96
+    basis: adapted
+    artifacts:
+      - org.springframework:spring-expression
+      - org.springframework:spring-messaging
+    note: New in this release; ported onto 4.2.9.RELEASE; fixed at 4.2.9.RELEASE-backpatch-00001 (backpatch-spring-framework@091f16e..87e6a96).
+tests:
+  commit: 87e6a960b261d3dfaf5e4298671207bdbc566376
+  command: ./gradlew --no-daemon -I spring-4.2-init.gradle --continue :spring-expression:test :spring-messaging:test (Gradle 2.5; the report decides)
+  runtime: OpenJDK 1.8.0_382 (Zulu), Gradle wrapper of the repository
+  report: spring-expression-4.2.9.RELEASE-backpatch-00001-tests.zip
+  report_sha256: 793a7d7d4a6ec422b6e99a4ad7dcc6d85a5b2b5b21beb3ecfadb090ce88cead1
+  result: pass
+  note: 1180 tests at the patch commit, 15 of them skipped by the suite, 0 failed, 0 errors.
