@@ -1,0 +1,21 @@
+schema: osera-patch-evidence/0.1.0
+producer: moderne
+release: 6.2.19.1-backpatch-00001
+baseline: v6.2.19+backpatch.baseline
+fixes:
+  - cve: CVE-2026-47892
+    upstream_fix_url: https://github.com/spring-projects/spring-framework/commit/07cbd482a0006d42eef61cede2b8a125c2b2a748
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2026-47892
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-spring-framework/commit/d6ce555
+    basis: backport
+    artifacts:
+      - org.springframework:spring-webflux
+    note: New in this release; ported onto 6.2.19; fixed at 6.2.19.1-backpatch-00001 (backpatch-spring-framework@d6ce555).
+tests:
+  commit: d6ce555ddf9fc6b876dc8a071d04ddfa359039c4
+  command: ./gradlew --no-daemon --offline --no-scan --no-build-cache -Dorg.gradle.parallel=false -x checkstyleMain -x checkstyleTest :spring-core:test :spring-web:test :spring-webmvc:test :spring-webflux:test --continue (the tag's Gradle 8.14.3 wrapper, in a Linux container of BellSoft Liberica 17.0.21.1, the build's own toolchain vendor, with no network but its own loopback; the report decides)
+  runtime: BellSoft Liberica 17.0.21.1 (the build's BELLSOFT toolchain) in bellsoft/liberica-openjdk-debian:17.0.21.1-5 on Linux aarch64, Zulu 21 (21+35) for spring-core's Java 21 sources, Gradle wrapper of the repository
+  report: spring-webflux-6.2.19.1-backpatch-00001-tests.zip
+  report_sha256: bdafaa2feb49547d8a3b2c4af1d0c43ff0f398f756238be1c6d08f6ec60268be
+  result: pass
+  note: 14300 tests at the patch commit, 60 of them skipped by the suite, 0 failed, 0 errors.
